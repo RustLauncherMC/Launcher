@@ -118,7 +118,7 @@ installed, signed in and launched, see [docs/upstream-research.md](docs/upstream
 - [x] Installations (profiles) per edition, and Join a server
 - [x] Launcher self-update, with signed releases
 - [x] Windows installer and Linux packages (AppImage, .deb)
-- [ ] First release
+- [x] First release
 - [ ] Translations
 
 ## Building
