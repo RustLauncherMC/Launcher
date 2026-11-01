@@ -56,6 +56,10 @@ way the official launcher puts Java and Bedrock side by side.
   check that the account owns Java Edition (Game Pass included). Several accounts can be signed
   in. Tokens are kept only in the system's password storage: Windows Credential Manager, or the
   Secret Service (GNOME Keyring, KWallet) on Linux.
+- **Accounts from Horizon's launcher:** if you already use Horizon's own launcher, "Use my Horizon
+  launcher account" plays with the accounts signed in there. Horizon's launcher signs in, checks
+  that you own Java Edition, and hands the game a one-time session file; RustLauncherMC never sees
+  the tokens. It's found on `PATH` or through its Linux menu entry, or chosen in Settings.
 - **Java Edition through Horizon:** Play does everything Horizon's own launcher does before a
   start:
   - Checks that the signed-in account owns Java Edition.

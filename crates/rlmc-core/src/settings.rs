@@ -20,6 +20,9 @@ pub struct Settings {
     pub edition: Edition,
     /// Which Cinnabar releases to install.
     pub cinnabar_channel: Channel,
+    /// Horizon's own launcher, when the player chose it (else it is looked for).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub horizon_launcher: Option<PathBuf>,
 }
 
 impl Settings {
@@ -63,6 +66,7 @@ mod tests {
         let s = Settings {
             edition: Edition::Bedrock,
             cinnabar_channel: Channel::Nightly,
+            horizon_launcher: Some(PathBuf::from("/opt/horizon/horizon-launcher")),
         };
         let text = serde_json::to_string(&s).unwrap();
         assert_eq!(serde_json::from_str::<Settings>(&text).unwrap(), s);

@@ -117,12 +117,17 @@ impl Launcher {
             fullscreen: installation.fullscreen,
             server,
         };
+        let bridge = self.java.horizon_launcher.clone();
         let job = progress.clone();
         let task = cx.background_executor().spawn(async move {
             // The owner gate: no download from Mojang and no start without an account that
             // owns Java Edition.
             job.set_step("Checking your account");
-            let launch_as = accounts::launch(&agent, &Keyring, &account)?;
+            let launch_as = if account.via_horizon {
+                accounts::launch_via_horizon(bridge.as_ref(), &account)?
+            } else {
+                accounts::launch(&agent, &Keyring, &account)?
+            };
 
             let latest = match latest {
                 Some(release) => Some(release),
@@ -132,12 +137,26 @@ impl Launcher {
 
             prepare::ensure(&agent, &build, &job)?;
 
-            job.set_step("Starting Horizon");
-            let (session, offline) = match launch_as {
-                Launch::Online(session) => (Some(session), false),
-                Launch::Offline(_) => (None, true),
+            let game = match &launch_as {
+                Launch::Online(session) => {
+                    job.set_step("Starting Horizon");
+                    launch::start(&build, launch::Auth::Session(session), &home, &start)?
+                }
+                Launch::Offline(_) => {
+                    job.set_step("Starting Horizon");
+                    launch::start(&build, launch::Auth::Offline, &home, &start)?
+                }
+                Launch::Horizon(account) => {
+                    // Asked for only now: the game refuses a session file older than two
+                    // minutes, and preparing can take longer.
+                    job.set_step("Getting your session from Horizon's launcher");
+                    let bridge = bridge.as_ref().expect("checked by launch_via_horizon");
+                    let file = bridge.session_file(&account.uuid)?;
+                    job.set_step("Starting Horizon");
+                    launch::start(&build, launch::Auth::SessionFile(&file), &home, &start)?
+                }
             };
-            let game = launch::start(&build, session.as_ref(), &home, &start)?;
+            let offline = matches!(launch_as, Launch::Offline(_));
             anyhow::Ok((game, offline))
         });
         // Redraw while the job runs, so the progress bar moves.

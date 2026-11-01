@@ -64,6 +64,8 @@ impl Launcher {
         rlmc_core::update::cleanup();
         launcher.check_for_updates(cx);
         launcher.load_heads(cx);
+        launcher.java.horizon_launcher =
+            rlmc_core::horizon::bridge::find(launcher.settings.horizon_launcher.as_deref());
         launcher
     }
 

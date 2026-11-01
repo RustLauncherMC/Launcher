@@ -9,6 +9,7 @@ use gpui::{
 };
 use rlmc_core::accounts::{self, Accounts, Keyring};
 use rlmc_core::horizon;
+use rlmc_core::horizon::bridge::{self, HorizonLauncher};
 use rlmc_core::microsoft::{self, DeviceCode};
 use rlmc_core::settings::Edition;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -26,6 +27,10 @@ pub struct Java {
     message: Option<Result<String, String>>,
     /// Player heads by UUID, once loaded; `None` while loading or when there is none.
     heads: std::collections::HashMap<String, Option<Arc<gpui::Image>>>,
+    /// Horizon's own launcher, whose signed-in accounts can be used here.
+    pub horizon_launcher: Option<HorizonLauncher>,
+    /// Reading Horizon's launcher's accounts.
+    importing: bool,
 }
 
 enum SignIn {
@@ -47,6 +52,8 @@ impl Default for Java {
             sign_in: None,
             message: None,
             heads: Default::default(),
+            horizon_launcher: None,
+            importing: false,
         }
     }
 }
@@ -200,17 +207,20 @@ impl Launcher {
     }
 
     pub fn sign_out(&mut self, uuid: String, cx: &mut Context<Self>) {
-        let name = self
+        let (name, via_horizon) = self
             .java
             .accounts
             .accounts
             .iter()
             .find(|a| a.uuid == uuid)
-            .map(|a| a.name.clone())
+            .map(|a| (a.name.clone(), a.via_horizon))
             .unwrap_or_default();
         let result = accounts::sign_out(&Keyring, &mut self.java.accounts, &uuid)
             .and_then(|()| self.java.accounts.save());
         self.java.message = Some(match result {
+            Ok(()) if via_horizon => Ok(format!(
+                "Removed {name}. It's still signed in to Horizon's launcher"
+            )),
             Ok(()) => Ok(format!("Signed out {name}")),
             Err(e) => Err(err(e)),
         });
@@ -318,23 +328,33 @@ impl Launcher {
                         button("java-horizon", "About Horizon")
                             .on_click(|_, _, cx| cx.open_url(HORIZON_URL)),
                     ),
-                None => hero
-                    .child(heading("Sign in to play Java Edition", 24.))
-                    .child(
-                        label(
-                            "Horizon is Minecraft: Java Edition rewritten in Rust. It needs a \
+                None => {
+                    hero.child(heading("Sign in to play Java Edition", 24.))
+                        .child(
+                            label(
+                                "Horizon is Minecraft: Java Edition rewritten in Rust. It needs a \
                              Microsoft account that owns Minecraft: Java Edition.",
-                            15.,
-                            theme::muted(),
+                                15.,
+                                theme::muted(),
+                            )
+                            .max_w(px(560.))
+                            .text_center(),
                         )
-                        .max_w(px(560.))
-                        .text_center(),
-                    )
-                    .child(
-                        primary_button("signin-start", "Sign in with Microsoft").on_click(
-                            cx.listener(|this, _: &ClickEvent, _, cx| this.start_sign_in(cx)),
-                        ),
-                    ),
+                        .child(
+                            div()
+                                .flex()
+                                .gap(px(8.))
+                                .child(
+                                    primary_button("signin-start", "Sign in with Microsoft")
+                                        .on_click(cx.listener(|this, _: &ClickEvent, _, cx| {
+                                            this.start_sign_in(cx)
+                                        })),
+                                )
+                                .when(self.java.horizon_launcher.is_some(), |row| {
+                                    row.child(self.use_horizon_button("signin-horizon", cx))
+                                }),
+                        )
+                }
             },
         }
     }
@@ -494,7 +514,10 @@ impl Launcher {
                             .child(
                                 label(account.name.clone(), 14., theme::text())
                                     .font_weight(FontWeight::SEMIBOLD),
-                            ),
+                            )
+                            .when(account.via_horizon, |row| {
+                                row.child(label("via Horizon launcher", 12., theme::muted()))
+                            }),
                     )
                     .child(if is_selected {
                         label("Selected", 12., theme::muted()).into_any_element()
@@ -511,7 +534,12 @@ impl Launcher {
                     .child(
                         button(
                             SharedString::from(format!("account-out-{}", account.uuid)),
-                            "Sign out",
+                            // An account of Horizon's launcher stays signed in there.
+                            if account.via_horizon {
+                                "Remove"
+                            } else {
+                                "Sign out"
+                            },
                         )
                         .on_click(cx.listener(
                             move |this, _: &ClickEvent, _, cx| this.sign_out(out_uuid.clone(), cx),
@@ -530,6 +558,126 @@ impl Launcher {
                 .into_any_element()
         };
         list.child(div().flex().child(add))
+            .child(self.horizon_launcher_settings(cx))
+    }
+
+    /// "Use my Horizon launcher account", or a disabled copy while reading its accounts.
+    fn use_horizon_button(&self, id: &'static str, cx: &mut Context<Self>) -> gpui::AnyElement {
+        if self.java.importing {
+            return disabled("Reading Horizon's launcher…").into_any_element();
+        }
+        button(id, "Use my Horizon launcher account")
+            .on_click(cx.listener(|this, _: &ClickEvent, _, cx| this.use_horizon_accounts(cx)))
+            .into_any_element()
+    }
+
+    /// Settings: where Horizon's own launcher is, and using its accounts.
+    fn horizon_launcher_settings(&self, cx: &mut Context<Self>) -> Div {
+        let found = self.java.horizon_launcher.as_ref();
+        let where_text = match found {
+            Some(h) => format!("Horizon's launcher: {}", h.exe.display()),
+            None => "Horizon's launcher wasn't found on this computer.".to_string(),
+        };
+        let mut buttons = div().flex().gap(px(8.));
+        if found.is_some() {
+            buttons = buttons.child(self.use_horizon_button("settings-use-horizon", cx));
+        }
+        buttons = buttons.child(
+            button("settings-choose-horizon", "Choose horizon-launcher…").on_click(
+                cx.listener(|this, _: &ClickEvent, _, cx| this.choose_horizon_launcher(cx)),
+            ),
+        );
+        div()
+            .mt(px(10.))
+            .flex()
+            .flex_col()
+            .gap(px(6.))
+            .child(heading("Accounts from Horizon's launcher", 14.))
+            .child(label(
+                "Already signed in to Horizon's own launcher? RustLauncherMC can play with those \
+                 accounts: Horizon's launcher signs in and checks that you own Java Edition, and \
+                 hands the game a one-time session. No sign-in data is stored here.",
+                13.,
+                theme::muted(),
+            ))
+            .child(crate::widgets::path_label(where_text))
+            .child(buttons)
+    }
+
+    /// Adds the accounts signed in to Horizon's own launcher.
+    pub fn use_horizon_accounts(&mut self, cx: &mut Context<Self>) {
+        let Some(horizon) = self.java.horizon_launcher.clone() else {
+            return;
+        };
+        if self.java.importing {
+            return;
+        }
+        self.java.importing = true;
+        self.java.message = None;
+        cx.notify();
+        let task = cx
+            .background_executor()
+            .spawn(async move { horizon.accounts() });
+        cx.spawn(async move |this, cx| {
+            let list = task.await;
+            let _ = this.update(cx, |this, cx| {
+                this.java.importing = false;
+                let result = list.and_then(|list| {
+                    let added = accounts::use_horizon_accounts(&mut this.java.accounts, &list)?;
+                    this.java.accounts.save()?;
+                    Ok(added)
+                });
+                this.java.message = Some(match result {
+                    Ok(_) => Ok(format!(
+                        "Playing as {} from Horizon's launcher",
+                        this.java
+                            .accounts
+                            .selected()
+                            .map(|a| a.name.as_str())
+                            .unwrap_or("?")
+                    )),
+                    Err(e) => Err(err(e)),
+                });
+                this.load_heads(cx);
+                cx.notify();
+            });
+        })
+        .detach();
+    }
+
+    /// Lets the player point at `horizon-launcher` (Windows has no standard place for it).
+    fn choose_horizon_launcher(&mut self, cx: &mut Context<Self>) {
+        let picked = cx.prompt_for_paths(gpui::PathPromptOptions {
+            files: true,
+            directories: false,
+            multiple: false,
+            prompt: Some("Choose Horizon's launcher (horizon-launcher)".into()),
+        });
+        cx.spawn(async move |this, cx| {
+            let Ok(Ok(Some(paths))) = picked.await else {
+                return;
+            };
+            let Some(path) = paths.into_iter().next() else {
+                return;
+            };
+            let _ = this.update(cx, |this, cx| {
+                let named_right = path
+                    .file_name()
+                    .is_some_and(|n| n.to_string_lossy().starts_with("horizon-launcher"));
+                if !named_right {
+                    this.java.message = Some(Err(
+                        "That isn't Horizon's launcher (horizon-launcher)".into(),
+                    ));
+                } else {
+                    this.settings.horizon_launcher = Some(path.clone());
+                    this.save_settings();
+                    this.java.horizon_launcher = bridge::find(Some(&path));
+                    this.java.message = Some(Ok("Horizon's launcher chosen".into()));
+                }
+                cx.notify();
+            });
+        })
+        .detach();
     }
 }
 

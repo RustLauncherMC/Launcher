@@ -8,7 +8,8 @@
 //!    `horizon-prepare` ([`prepare`]). The files come from the official launcher's folder, or
 //!    are downloaded from Mojang only for a signed-in owner ([`mojang`]).
 //! 3. **Launch** `horizon-client` through Horizon's Launch API, handing the signed-in account
-//!    over on standard input ([`launch`]).
+//!    over on standard input ([`launch`]), or as a session file from Horizon's own launcher
+//!    ([`bridge`]).
 //!
 //! Everything lives under `<data>/horizon/`:
 //!
@@ -20,6 +21,7 @@
 //! home/                 the game folder: saves, options, logs and crash reports
 //! ```
 
+pub mod bridge;
 pub mod launch;
 pub mod mojang;
 pub mod prepare;
