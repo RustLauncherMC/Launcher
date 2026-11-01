@@ -5,7 +5,8 @@
 //! - [`horizon`]: Minecraft: Java Edition through Horizon (install, prepare, launch).
 //! - [`cinnabar`]: Minecraft: Bedrock Edition through Cinnabar (find, install, launch).
 //! - [`github`]: reading a project's releases.
-//! - [`download`] and [`checksum`]: verified downloads.
+//! - [`download`], [`checksum`] and [`signing`]: verified downloads and signed releases.
+//! - [`update`]: RustLauncherMC updating itself.
 //! - [`settings`] and [`paths`]: the launcher's own files.
 //!
 //! See `docs/upstream-research.md` for how each game is installed and started.
@@ -19,6 +20,8 @@ pub mod horizon;
 pub mod microsoft;
 pub mod paths;
 pub mod settings;
+pub mod signing;
+pub mod update;
 
 pub use ureq;
 

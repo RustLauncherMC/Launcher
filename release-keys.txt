@@ -1,0 +1,3 @@
+# The public keys RustLauncherMC's releases are signed with: one base64 Ed25519 key per line.
+# The launcher builds these in and refuses an update that no key here signed.
+# The private key is the RELEASE_SIGNING_KEY secret of the repository; see docs/releasing.md.

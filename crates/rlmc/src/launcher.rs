@@ -4,6 +4,7 @@ use crate::bedrock::Bedrock;
 use crate::horizon::Horizon;
 use crate::java::Java;
 use crate::theme;
+use crate::updates::Updates;
 use crate::widgets::{button, edition_icon, heading, label};
 use gpui::{
     div, img, linear_color_stop, linear_gradient, prelude::*, px, ClickEvent, Context, Div,
@@ -37,6 +38,7 @@ pub struct Launcher {
     pub bedrock: Bedrock,
     pub java: Java,
     pub horizon: Horizon,
+    pub updates: Updates,
 }
 
 impl Launcher {
@@ -51,10 +53,13 @@ impl Launcher {
             bedrock: Bedrock::default(),
             java: Java::default(),
             horizon: Horizon::default(),
+            updates: Updates::Checking,
         };
         launcher.find_bedrock(cx);
         launcher.fetch_bedrock_release(cx);
         launcher.fetch_horizon_release(cx);
+        rlmc_core::update::cleanup();
+        launcher.check_for_updates(cx);
         launcher
     }
 
@@ -120,6 +125,7 @@ impl Launcher {
                 cx,
             ))
             .child(div().flex_1())
+            .children(self.update_banner(cx))
             .child(
                 self.sidebar_item(
                     "nav-settings",
@@ -323,6 +329,8 @@ impl Launcher {
                                     .into_any_element(),
                             }),
                     )
+                    .child(section("Updates"))
+                    .child(self.updates_settings(cx))
                     .child(section("About"))
                     .child(label(
                         format!("RustLauncherMC {}", env!("CARGO_PKG_VERSION")),
