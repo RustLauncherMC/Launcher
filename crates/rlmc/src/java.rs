@@ -83,6 +83,7 @@ impl Launcher {
         cx.notify();
 
         let agent = self.agent.clone();
+        let cancelled = cancel.clone();
         let wait = cx.background_executor().spawn({
             let agent = agent.clone();
             async move { microsoft::wait_for_sign_in(&agent, &code, &cancel) }
@@ -90,6 +91,8 @@ impl Launcher {
         cx.spawn(async move |this, cx| {
             let tokens = match wait.await {
                 Ok(tokens) => tokens,
+                // Cancel already reset the page; a cancelled sign-in is not an error.
+                Err(_) if cancelled.load(Ordering::Relaxed) => return,
                 Err(e) => {
                     let _ = this.update(cx, |this, cx| this.sign_in_failed(err(e), cx));
                     return;
