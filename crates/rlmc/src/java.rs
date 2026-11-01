@@ -231,6 +231,7 @@ impl Launcher {
                     .child(self.java_hero(window, cx))
                     .child(self.java_bar(cx)),
                 Tab::Installations => self.horizon_installations(window, cx),
+                Tab::Logs => self.logs_tab(Edition::Java, cx),
                 Tab::PatchNotes => self.horizon_notes(cx),
             })
     }
@@ -446,9 +447,9 @@ impl Launcher {
                 Some(Ok(text)) => {
                     right.child(label(text.clone(), 12., theme::muted()).text_right())
                 }
-                Some(Err(text)) => {
-                    right.child(label(text.clone(), 12., theme::error()).text_right())
-                }
+                Some(Err(text)) => right
+                    .child(label(text.clone(), 12., theme::error()).text_right())
+                    .children(self.crash_link(Edition::Java, cx)),
                 None => right
                     .child(label(self.horizon_release_line(), 12., theme::muted()).text_right()),
             }

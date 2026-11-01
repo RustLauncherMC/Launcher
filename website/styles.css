@@ -459,6 +459,8 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
 .foot-bottom { display: flex; justify-content: space-between; padding-top: 24px; border-top: 1px solid var(--line); color: var(--faint); }
 .foot-bottom a { color: var(--faint); text-decoration: none; }
 .foot-bottom a:hover { color: var(--fg); }
+.foot-bottom .repo-link { display: inline-flex; align-items: center; gap: 8px; }
+.foot-bottom .github-icon { width: 16px; height: 16px; flex: none; }
 
 /* ---------- Reveal on scroll ---------- */
 /* Hidden only when JavaScript runs, so the page still reads without it. */

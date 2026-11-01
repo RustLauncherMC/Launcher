@@ -5,6 +5,7 @@
 //! - [`horizon`]: Minecraft: Java Edition through Horizon (install, prepare, launch).
 //! - [`cinnabar`]: Minecraft: Bedrock Edition through Cinnabar (find, install, launch).
 //! - [`installations`] and [`servers`]: profiles per edition, and server addresses.
+//! - [`logs`]: the games' logs and crash reports.
 //! - [`github`]: reading a project's releases.
 //! - [`download`], [`checksum`] and [`signing`]: verified downloads and signed releases.
 //! - [`update`]: RustLauncherMC updating itself.
@@ -19,6 +20,7 @@ pub mod download;
 pub mod github;
 pub mod horizon;
 pub mod installations;
+pub mod logs;
 pub mod microsoft;
 pub mod paths;
 pub mod servers;

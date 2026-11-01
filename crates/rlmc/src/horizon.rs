@@ -103,6 +103,7 @@ impl Launcher {
         let progress = Arc::new(Progress::default());
         self.horizon.job = Some(progress.clone());
         self.horizon.message = None;
+        self.logs.crash = None;
         cx.notify();
 
         let agent = self.agent.clone();
@@ -195,10 +196,11 @@ impl Launcher {
                         "Horizon refused how it was started. Updating RustLauncherMC may help"
                             .into(),
                     )),
-                    Ok(Some(_)) => Some(Err(match crash {
-                        Some(path) => format!("Horizon crashed. Crash report: {path}"),
-                        None => "Horizon crashed. Its log is in the game folder's logs".into(),
-                    })),
+                    Ok(Some(_)) => {
+                        this.logs.crash =
+                            Some((Edition::Java, crash.map(std::path::PathBuf::from)));
+                        Some(Err("Horizon crashed.".into()))
+                    }
                     Ok(None) => Some(Err("Horizon was stopped".into())),
                     Err(e) => Some(Err(e.to_string())),
                 };
@@ -208,10 +210,11 @@ impl Launcher {
         .detach();
     }
 
-    pub fn java_tabs() -> [(Tab, &'static str); 3] {
+    pub fn java_tabs() -> [(Tab, &'static str); 4] {
         [
             (Tab::Play, "Play"),
             (Tab::Installations, "Installations"),
+            (Tab::Logs, "Logs"),
             (Tab::PatchNotes, "Patch notes"),
         ]
     }

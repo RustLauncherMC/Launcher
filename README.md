@@ -89,7 +89,7 @@ Each game's own README is the source of truth for its requirements.
 
 ## Features
 
-- **Familiar layout:** editions in a sidebar; Play, Installations and Patch notes tabs; and a big
+- **Familiar layout:** editions in a sidebar; Play, Installations, Logs and Patch notes tabs; and a big
   green Play button with the installation picker beside it.
 - **Bedrock through Cinnabar:**
   - Finds a copy you already installed, or installs the official Beta or Nightly, checked
@@ -102,6 +102,9 @@ Each game's own README is the source of truth for its requirements.
   - Prepares the game files from your copy of Minecraft, checking each file.
   - Starts the game through Horizon's Launch API with your account.
   - Points you to the crash report if the game crashes.
+- **Logs and crash reports:** the Logs tab lists each installation's logs and crash reports,
+  newest crash first, with errors and warnings coloured, and Copy and Open folder buttons. When a
+  game crashes, the bottom bar links straight to its report.
 - **Microsoft sign-in** with a short code at microsoft.com/link. Tokens are kept only in your
   system's password storage (Windows Credential Manager, or GNOME Keyring or KWallet on Linux).
 - **Installations:** several per edition, each with its own worlds and settings. Java ones can
@@ -127,7 +130,7 @@ official client yet, so some anticheats may flag it. Play on servers at your own
 | | Windows | Linux |
 | --- | --- | --- |
 | Launcher settings and accounts list | `%APPDATA%\RustLauncherMC` | `~/.config/rustlaunchermc` |
-| Horizon: builds, worlds, logs | `%LOCALAPPDATA%\RustLauncherMC\horizon` | `~/.local/share/rustlaunchermc/horizon` |
+| Horizon: builds, worlds, logs (also in the Logs tab) | `%LOCALAPPDATA%\RustLauncherMC\horizon` | `~/.local/share/rustlaunchermc/horizon` |
 | Cinnabar (Default installation) | `%LOCALAPPDATA%\Cinnabar` | `~/.local/share/cinnabar` |
 
 Each installation's folder is also one click away in the Installations tab.
@@ -160,7 +163,7 @@ cargo run --release
 
 | Crate | What it is |
 | --- | --- |
-| [`crates/rlmc-core`](crates/rlmc-core) | The backend, with no UI: releases and verified downloads, Microsoft sign-in and accounts, Horizon's install, preparation and launch, Cinnabar's install and launch, installations, settings, self-update |
+| [`crates/rlmc-core`](crates/rlmc-core) | The backend, with no UI: releases and verified downloads, Microsoft sign-in and accounts, Horizon's install, preparation and launch, Cinnabar's install and launch, installations, logs and crash reports, settings, self-update |
 | [`crates/rlmc`](crates/rlmc) | The GPUI app (the `rustlauncher` binary) |
 | [`crates/rlmc-release`](crates/rlmc-release) | Signs releases ([docs/releasing.md](docs/releasing.md)) |
 
@@ -189,8 +192,8 @@ Settings for development:
 - [x] Signed releases, installers, self-update
 - [x] First release (v0.1.0) and the website
 - [ ] Mojang's approval of the sign-in app
-- [ ] Log and crash viewer in the launcher
-- [ ] Java options per installation (memory, window size, extra arguments)
+- [x] Log and crash viewer in the launcher
+- [ ] More options per installation (window size, game arguments)
 - [ ] Translations
 - [ ] Flatpak
 

@@ -10,6 +10,7 @@ mod horizon;
 mod installations;
 mod java;
 mod launcher;
+mod logs;
 mod theme;
 mod updates;
 mod widgets;
