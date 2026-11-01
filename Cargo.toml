@@ -1,0 +1,12 @@
+[workspace]
+resolver = "2"
+members = ["crates/rlmc-core", "crates/rlmc"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/RustLauncherMC/Launcher"
+
+[profile.release]
+strip = true
