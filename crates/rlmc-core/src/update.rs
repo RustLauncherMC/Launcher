@@ -341,6 +341,13 @@ mod tests {
     }
 
     #[test]
+    fn the_built_in_release_keys_parse() {
+        // An unreadable or empty keys file would turn self-update off for every launcher.
+        let keys = signing::parse_keys(KEYS).expect("release-keys.txt is valid");
+        assert!(!keys.is_empty(), "release-keys.txt lists no key");
+    }
+
+    #[test]
     fn unsigned_updates_are_refused() {
         assert!(verify("v9.9.9", b"sums", "").is_err());
     }
