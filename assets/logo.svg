@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-labelledby="t">
+  <title id="t">RustLauncherMC logo</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2E3035"/>
+      <stop offset="1" stop-color="#17181B"/>
+    </linearGradient>
+    <linearGradient id="cog" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F0795A"/>
+      <stop offset="1" stop-color="#B7410E"/>
+    </linearGradient>
+  </defs>
+
+  <!-- App tile -->
+  <rect x="8" y="8" width="240" height="240" rx="52" fill="url(#bg)"/>
+  <rect x="8.5" y="8.5" width="239" height="239" rx="51.5" fill="none" stroke="#FFFFFF" stroke-opacity="0.08"/>
+
+  <!-- Rust cog ring: 24 teeth -->
+  <g transform="rotate(-7.5 128 132)">
+    <circle cx="128" cy="132" r="99" fill="none" stroke="url(#cog)" stroke-width="14"
+            stroke-dasharray="12.96 12.96" pathLength="311"/>
+  </g>
+  <circle cx="128" cy="132" r="90" fill="none" stroke="url(#cog)" stroke-width="8"/>
+
+  <!-- Block -->
+  <!-- left face: Java (Horizon) -->
+  <polygon points="72,100 128,132 128,198 72,166" fill="#3B2F7E"/>
+  <!-- right face: Bedrock (Cinnabar) -->
+  <polygon points="128,132 184,100 184,166 128,198" fill="#B22222"/>
+  <!-- top face: grass -->
+  <polygon points="128,68 184,100 128,132 72,100" fill="#6DB33F"/>
+  <!-- grass overhang, pixel steps -->
+  <polygon points="72,100 128,132 128,142 114,134 114,140 100,132 100,126 86,118 86,124 72,116" fill="#5D9C3F"/>
+  <polygon points="128,132 184,100 184,112 170,120 170,114 156,122 156,130 142,138 142,134 128,142" fill="#4E8A33"/>
+  <!-- top highlight -->
+  <polygon points="128,68 184,100 176,104.6 128,77" fill="#FFFFFF" fill-opacity="0.18"/>
+
+  <!-- play glyph on the front edge -->
+  <polygon points="113,152 113,184 141,168" fill="#FFFFFF"/>
+</svg>
