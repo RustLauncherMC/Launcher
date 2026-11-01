@@ -445,6 +445,16 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
 .foot-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin: 40px 0; }
 .foot-cols h4 { margin: 0 0 12px; font-size: 13.5px; font-weight: 600; }
 .foot-cols p { margin: 0; color: var(--muted); }
+.foot-cols p + p { margin-top: 10px; }
+.claude-icon { width: 14px; height: 14px; flex: none; color: #d97757; }
+.claude-credit { white-space: nowrap; }
+.claude-credit .claude-icon { display: inline-block; margin-right: 4px; vertical-align: -2px; }
+.foot-cols .claude-note {
+  display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: 10px;
+  background: rgba(217, 119, 87, 0.08); border: 1px solid rgba(217, 119, 87, 0.22);
+  font-style: italic; color: #d8cfc7;
+}
+.claude-note .claude-icon { margin-top: 3px; }
 .foot-cols a { color: var(--fg); text-decoration-color: rgba(240, 121, 90, 0.5); text-underline-offset: 3px; }
 .foot-bottom { display: flex; justify-content: space-between; padding-top: 24px; border-top: 1px solid var(--line); color: var(--faint); }
 .foot-bottom a { color: var(--faint); text-decoration: none; }
