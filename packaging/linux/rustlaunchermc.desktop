@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=RustLauncherMC
+GenericName=Minecraft launcher
+Comment=Fan-made launcher for Horizon (Java Edition) and Cinnabar (Bedrock Edition)
+Exec=rustlauncher
+Icon=rustlaunchermc
+Terminal=false
+Categories=Game;
+Keywords=minecraft;launcher;horizon;cinnabar;
+StartupWMClass=rustlaunchermc

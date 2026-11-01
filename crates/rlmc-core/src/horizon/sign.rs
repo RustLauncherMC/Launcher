@@ -6,9 +6,8 @@
 //! `SHA256SUMS`. Nightly builds are signed for the tag `nightly`, so a nightly's signature never
 //! passes for a release, nor a release's for a nightly.
 
+use crate::signing::{signed_by_any, PublicKey};
 use anyhow::{bail, Result};
-use base64::{engine::general_purpose::STANDARD, Engine};
-use ring::signature::{UnparsedPublicKey, ED25519};
 
 pub const SUMS: &str = "SHA256SUMS";
 pub const SIGNATURE: &str = "SHA256SUMS.sig";
@@ -18,18 +17,13 @@ pub const NIGHTLY: &str = "nightly";
 /// Horizon's release key, from `crates/horizon-release-sign/release-keys.txt` upstream.
 pub const KEYS: &[&str] = &["MU4oiIQcCxkZvbwSjjXs7SySCuM6ywRQ3nGaJYZG0gw="];
 
-fn keys() -> Vec<[u8; 32]> {
-    KEYS.iter()
-        .filter_map(|k| STANDARD.decode(k).ok())
-        .filter_map(|k| <[u8; 32]>::try_from(k.as_slice()).ok())
-        .collect()
+fn keys() -> Vec<PublicKey> {
+    crate::signing::parse_keys(&KEYS.join("\n")).unwrap_or_default()
 }
 
 /// What a signature covers: the tag, then the checksum list.
 pub fn message(tag: &str, sums: &[u8]) -> Vec<u8> {
-    let mut message = format!("horizon release {tag}\n").into_bytes();
-    message.extend_from_slice(sums);
-    message
+    crate::signing::message("horizon", tag, sums)
 }
 
 /// Whether `tag` is a nightly's: `nightly`, or a past one kept as `nightly-<date>`.
@@ -42,20 +36,9 @@ pub fn verify(tag: &str, sums: &[u8], signature: &str) -> Result<()> {
     verify_with(tag, sums, signature, &keys())
 }
 
-fn verify_with(tag: &str, sums: &[u8], signature: &str, keys: &[[u8; 32]]) -> Result<()> {
+fn verify_with(tag: &str, sums: &[u8], signature: &str, keys: &[PublicKey]) -> Result<()> {
     let signed_for = if is_nightly(tag) { NIGHTLY } else { tag };
-    let message = message(signed_for, sums);
-    let signed = signature
-        .lines()
-        .filter_map(|line| STANDARD.decode(line.trim()).ok())
-        .any(|sig| {
-            keys.iter().any(|key| {
-                UnparsedPublicKey::new(&ED25519, key)
-                    .verify(&message, &sig)
-                    .is_ok()
-            })
-        });
-    if !signed {
+    if !signed_by_any(&message(signed_for, sums), signature, keys) {
         bail!(
             "this Horizon build's signature doesn't match Horizon's release key, so it was not \
              installed. The download may have been tampered with"
@@ -99,6 +82,7 @@ fn is_date(text: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use base64::{engine::general_purpose::STANDARD, Engine};
     use ring::rand::SystemRandom;
     use ring::signature::{Ed25519KeyPair, KeyPair};
 

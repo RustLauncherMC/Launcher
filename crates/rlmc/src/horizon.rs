@@ -4,11 +4,12 @@
 use crate::launcher::{Launcher, Tab};
 use crate::theme;
 use crate::widgets::{button, heading, label, path_label, release_notes, IntoDiv};
-use gpui::{div, prelude::*, px, ClickEvent, Context, Div, SharedString};
+use gpui::{div, prelude::*, px, ClickEvent, Context, Div, SharedString, Window};
 use rlmc_core::accounts::{self, Keyring, Launch};
 use rlmc_core::download::Progress;
 use rlmc_core::github::Release;
 use rlmc_core::horizon::{self, launch, prepare, Build};
+use rlmc_core::settings::Edition;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -87,6 +88,11 @@ impl Launcher {
     /// Play: checks the account, installs the newest build if needed, prepares the game files,
     /// and starts the game.
     pub fn play_java(&mut self, cx: &mut Context<Self>) {
+        self.play_java_with(None, cx)
+    }
+
+    /// Plays the selected installation, joining `server` (`host` or `host:port`) when given.
+    pub fn play_java_with(&mut self, server: Option<String>, cx: &mut Context<Self>) {
         if self.horizon.job.is_some() || self.horizon.running {
             return;
         }
@@ -105,6 +111,12 @@ impl Launcher {
             _ => None,
         };
         let installed = self.horizon.builds.clone();
+        let installation = self.selected_installation(Edition::Java);
+        let home = installation.folder().unwrap_or_else(horizon::home_dir);
+        let start = launch::StartOptions {
+            fullscreen: installation.fullscreen,
+            server,
+        };
         let job = progress.clone();
         let task = cx.background_executor().spawn(async move {
             // The owner gate: no download from Mojang and no start without an account that
@@ -125,7 +137,7 @@ impl Launcher {
                 Launch::Online(session) => (Some(session), false),
                 Launch::Offline(_) => (None, true),
             };
-            let game = launch::start(&build, session.as_ref(), &horizon::home_dir())?;
+            let game = launch::start(&build, session.as_ref(), &home, &start)?;
             anyhow::Ok((game, offline))
         });
         // Redraw while the job runs, so the progress bar moves.
@@ -204,7 +216,7 @@ impl Launcher {
         ]
     }
 
-    pub fn horizon_installations(&self, _cx: &mut Context<Self>) -> Div {
+    pub fn horizon_installations(&self, window: &Window, cx: &mut Context<Self>) -> Div {
         let mut list = div().flex().flex_col().gap(px(10.));
         for (i, build) in self.horizon.builds.iter().enumerate() {
             let folder = build.dir.clone();
@@ -256,7 +268,6 @@ impl Launcher {
                 theme::muted(),
             ));
         }
-        let home = horizon::home_dir();
         div()
             .id("horizon-installations")
             .flex_1()
@@ -266,20 +277,12 @@ impl Launcher {
             .flex()
             .flex_col()
             .gap(px(12.))
+            .child(self.installations_list(Edition::Java, window, cx))
+            .child(heading("Horizon builds", 18.).mt(px(12.)))
             .child(list)
-            .child(
-                div()
-                    .flex()
-                    .child(button("horizon-game-folder", "Open game folder").on_click(
-                        move |_, _, cx| {
-                            let _ = std::fs::create_dir_all(&home);
-                            cx.open_with_system(&home);
-                        },
-                    )),
-            )
             .child(label(
-                "Worlds, settings, logs and crash reports are in the game folder, shared by \
-                 every build. Play updates to the newest nightly; the build before it is kept.",
+                "Every installation plays the newest build. Play updates to the newest nightly; \
+                 the build before it is kept.",
                 13.,
                 theme::muted(),
             ))

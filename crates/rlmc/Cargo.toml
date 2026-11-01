@@ -16,3 +16,7 @@ rlmc-core = { path = "../rlmc-core" }
 gpui = { package = "gpui-fast", version = "0.1.12" }
 gpui_platform = { package = "gpui-fast-platform", version = "0.1.12", features = ["wayland", "x11", "font-kit"] }
 anyhow = "1"
+
+[build-dependencies]
+# The icon in the Windows executable (build.rs).
+winresource = "0.1"

@@ -259,6 +259,96 @@ pub fn release_notes(
         .into_any_element_div()
 }
 
+/// A one-line text field: typing, Backspace, paste, Enter and Escape. GPUI has no text input of
+/// its own; this covers names and server addresses (no cursor movement or selection).
+pub struct Field {
+    pub text: String,
+    pub focus: gpui::FocusHandle,
+}
+
+/// What a key press in a [`Field`] asks for.
+pub enum FieldKey {
+    Edited,
+    Submit,
+    Cancel,
+    Ignored,
+}
+
+impl Field {
+    pub fn new(text: impl Into<String>, cx: &mut gpui::App) -> Self {
+        Field {
+            text: text.into(),
+            focus: cx.focus_handle(),
+        }
+    }
+
+    pub fn key(&mut self, event: &gpui::KeyDownEvent, cx: &mut gpui::App) -> FieldKey {
+        let keystroke = &event.keystroke;
+        let command = keystroke.modifiers.control || keystroke.modifiers.platform;
+        match keystroke.key.as_str() {
+            "enter" => return FieldKey::Submit,
+            "escape" => return FieldKey::Cancel,
+            "backspace" => {
+                self.text.pop();
+                return FieldKey::Edited;
+            }
+            "v" if command => {
+                if let Some(text) = cx.read_from_clipboard().and_then(|c| c.text()) {
+                    self.text.push_str(text.lines().next().unwrap_or("").trim());
+                    self.text.truncate(200);
+                }
+                return FieldKey::Edited;
+            }
+            _ => {}
+        }
+        match &keystroke.key_char {
+            Some(typed) if !command && self.text.len() < 200 => {
+                self.text.extend(typed.chars().filter(|c| !c.is_control()));
+                FieldKey::Edited
+            }
+            _ => FieldKey::Ignored,
+        }
+    }
+
+    /// The field, with a caret while it has focus. The caller adds `on_key_down`.
+    pub fn view(
+        &self,
+        id: impl Into<ElementId>,
+        placeholder: &str,
+        width: f32,
+        window: &gpui::Window,
+    ) -> Stateful<Div> {
+        let focused = self.focus.is_focused(window);
+        let shown = if self.text.is_empty() && !focused {
+            label(placeholder.to_string(), 13., theme::faint())
+        } else {
+            label(
+                format!("{}{}", self.text, if focused { "▏" } else { "" }),
+                13.,
+                theme::text(),
+            )
+        };
+        div()
+            .id(id.into())
+            .track_focus(&self.focus)
+            .w(px(width))
+            .px(px(10.))
+            .py(px(6.))
+            .rounded(px(4.))
+            .bg(theme::sidebar_bg())
+            .border_1()
+            .border_color(if focused {
+                theme::play_hover()
+            } else {
+                theme::border()
+            })
+            .overflow_hidden()
+            .whitespace_nowrap()
+            .cursor_text()
+            .child(shown)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::plain;

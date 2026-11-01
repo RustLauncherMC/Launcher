@@ -12,6 +12,8 @@ anyhow = "1"
 # for HTTPS.
 base64 = "0.22"
 ring = "0.17"
+# Player heads: cut from the player's skin (skins.rs).
+image = { version = "0.25", default-features = false, features = ["png"] }
 # Mojang's files are listed with SHA-1 (horizon/mojang.rs).
 sha1 = "0.10"
 # Unpacking Horizon builds: .tar.gz on Linux, .zip on Windows (horizon/extract.rs).

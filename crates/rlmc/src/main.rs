@@ -7,9 +7,11 @@
 
 mod bedrock;
 mod horizon;
+mod installations;
 mod java;
 mod launcher;
 mod theme;
+mod updates;
 mod widgets;
 
 use gpui::{px, size, App, AppContext, Bounds, TitlebarOptions, WindowBounds, WindowOptions};

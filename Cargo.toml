@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/rlmc-core", "crates/rlmc"]
+members = ["crates/rlmc-core", "crates/rlmc", "crates/rlmc-release"]
 
 [workspace.package]
 version = "0.1.0"

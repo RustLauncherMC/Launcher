@@ -1,0 +1,108 @@
+name: Release
+
+# Pushing a tag like v0.2.0 builds the launcher for Linux and Windows, packages it, signs the
+# checksums and publishes a GitHub release. See docs/releasing.md.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  APPIMAGETOOL_VERSION: "1.9.1"
+
+jobs:
+  linux:
+    runs-on: ubuntu-22.04 # glibc 2.35, so the build runs on Ubuntu 22.04 and newer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Check the tag matches the version
+        run: |
+          version=$(grep -m1 '^version = ' Cargo.toml | cut -d'"' -f2)
+          test "${GITHUB_REF_NAME}" = "v${version}" || {
+            echo "::error::Tag ${GITHUB_REF_NAME} doesn't match Cargo.toml's version ${version}"; exit 1; }
+          echo "VERSION=${version}" >> "$GITHUB_ENV"
+      - name: Linux libraries for GPUI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxkbcommon-x11-dev libwayland-dev libx11-xcb-dev libfontconfig-dev libvulkan-dev
+      - run: cargo build --release --locked -p rlmc
+      - name: Package (.tar.gz, .deb, AppImage)
+        run: |
+          mkdir -p dist rustlauncher-linux-x86_64
+          cp target/release/rustlauncher LICENSE THIRD_PARTY_NOTICES.md README.md rustlauncher-linux-x86_64/
+          tar czf dist/rustlauncher-linux-x86_64.tar.gz rustlauncher-linux-x86_64
+          packaging/linux/build-deb.sh "$VERSION" dist
+          curl -sSLo appimagetool "https://github.com/AppImage/appimagetool/releases/download/${APPIMAGETOOL_VERSION}/appimagetool-x86_64.AppImage"
+          chmod +x appimagetool
+          APPIMAGETOOL=./appimagetool packaging/linux/build-appimage.sh dist
+          ls -la dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: dist/*
+          if-no-files-found: error
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --release --locked -p rlmc
+      - name: Package (.zip and installer)
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          New-Item -ItemType Directory -Force dist, rustlauncher-windows-x64 | Out-Null
+          Copy-Item target/release/rustlauncher.exe, LICENSE, THIRD_PARTY_NOTICES.md, README.md rustlauncher-windows-x64/
+          Compress-Archive -Path rustlauncher-windows-x64 -DestinationPath dist/rustlauncher-windows-x64.zip
+          choco install innosetup --no-progress -y
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DVersion=$version" packaging\windows\rustlaunchermc.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Get-ChildItem dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: dist/*
+          if-no-files-found: error
+
+  publish:
+    needs: [linux, windows]
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Checksums and signature
+        env:
+          RELEASE_SIGNING_KEY: ${{ secrets.RELEASE_SIGNING_KEY }}
+        run: |
+          cd dist
+          sha256sum -- * > SHA256SUMS
+          cat SHA256SUMS
+          cd ..
+          if [ -n "${RELEASE_SIGNING_KEY}" ]; then
+            cargo run --release --locked -q -p rlmc-release -- sign "${GITHUB_REF_NAME}" dist/SHA256SUMS > dist/SHA256SUMS.sig
+            # Fails when the key in the secret is not one in release-keys.txt.
+            cargo run --release --locked -q -p rlmc-release -- verify "${GITHUB_REF_NAME}" dist/SHA256SUMS dist/SHA256SUMS.sig
+          else
+            echo "::warning::RELEASE_SIGNING_KEY is not set: the release is unsigned, so launchers won't update to it."
+          fi
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" dist/* \
+            --title "RustLauncherMC ${GITHUB_REF_NAME}" \
+            --generate-notes
