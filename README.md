@@ -24,8 +24,9 @@ familiar from the first click.
 > Minecraft code, assets or data.
 
 > [!NOTE]
-> Early development, with no release yet. Bedrock Edition (Cinnabar) can be installed and launched
-> today when you build from source. Java Edition (Horizon) comes next.
+> Early development, with no release yet. When you build from source, Bedrock Edition (Cinnabar)
+> can be installed and launched, and Java Edition (Horizon) can be installed, prepared and
+> launched. Java sign-in works once Mojang approves the launcher's sign-in app.
 
 ## Why
 
@@ -45,7 +46,20 @@ way the official launcher puts Java and Bedrock side by side.
     official MSI.
   - Shows the installed version and launches the game.
   - Shows the release notes.
-- **Settings:** release channel, folders, and license information.
+- **Java Edition sign-in:** Microsoft sign-in with a code (microsoft.com/link), Xbox Live, and a
+  check that the account owns Java Edition (Game Pass included). Several accounts can be signed
+  in. Tokens are kept only in the system's password storage: Windows Credential Manager, or the
+  Secret Service (GNOME Keyring, KWallet) on Linux.
+- **Java Edition through Horizon:** Play does everything Horizon's own launcher does before a
+  start:
+  - Checks that the signed-in account owns Java Edition.
+  - Installs or updates to the newest nightly, checked against Horizon's signed `SHA256SUMS`.
+  - Prepares the game files with Horizon's preparer. The Minecraft files come from the official
+    launcher's folder, or are downloaded from Mojang for the signed-in owner, each file checked
+    against its SHA-1. Java 25 is downloaded from Mojang if the system has none.
+  - Starts the game through Horizon's Launch API, handing over the account on standard input.
+  - Shows the crash report if the game crashes.
+- **Settings:** accounts, release channel, folders, and license information.
 
 ## Planned features
 
@@ -85,8 +99,9 @@ installed, signed in and launched, see [docs/upstream-research.md](docs/upstream
 - [x] Launcher window and official-style layout
 - [x] Download, verify, install and launch Cinnabar releases
 - [x] Cinnabar patch notes
-- [ ] Microsoft account sign-in (device code), with our own Mojang-approved app
-- [ ] Download, prepare and launch Horizon releases
+- [x] Microsoft account sign-in (device code)
+- [ ] Mojang's approval of the sign-in app
+- [x] Download, verify, prepare and launch Horizon releases
 - [ ] Installations (profiles) per edition
 - [ ] Launcher self-update
 - [ ] Windows installer and Linux packages (AppImage, .deb)
@@ -113,10 +128,11 @@ The workspace has two crates:
 
 | Crate | What it is |
 | --- | --- |
-| [`crates/rlmc-core`](crates/rlmc-core) | The backend, with no UI: GitHub releases, verified downloads, settings, and Cinnabar's install, version and launch |
+| [`crates/rlmc-core`](crates/rlmc-core) | The backend, with no UI: GitHub releases, verified downloads, settings, Microsoft sign-in and accounts, Horizon's install, preparation and launch, and Cinnabar's install, version and launch |
 | [`crates/rlmc`](crates/rlmc) | The GPUI app (`rustlauncher` binary) |
 
-`cargo test --workspace` runs the tests. Set `RUSTLAUNCHERMC_HOME=/some/absolute/folder` to keep
+`cargo test --workspace` runs the tests. The Microsoft sign-in uses RustLauncherMC's own Azure app;
+`RUSTLAUNCHERMC_MSA_CLIENT_ID` replaces its client ID at run time, for testing your own app. Set `RUSTLAUNCHERMC_HOME=/some/absolute/folder` to keep
 the launcher's settings and downloads in a separate folder while testing.
 
 ## Contributing

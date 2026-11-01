@@ -6,6 +6,8 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
 mod bedrock;
+mod horizon;
+mod java;
 mod launcher;
 mod theme;
 mod widgets;

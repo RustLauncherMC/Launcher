@@ -232,8 +232,14 @@ PolyForm Noncommercial 1.0.0:
 - **Cinnabar updates:** the game owns them. The launcher installs the first copy (or reinstalls on
   request), shows the installed version and the latest release, and launches it.
 
-## Open questions
+- **Microsoft sign-in:** our own Azure app, client ID `01fcbd6d-d954-499a-8c3a-0c837eef86ac`.
+  It must be set to personal Microsoft accounts with public client flows on. Mojang's approval was
+  requested on 2026-11-01.
 
-- When do we apply for the Azure client ID for Java sign-in?
-- Does Horizon's current nightly already have `--game-dir`, `--home` and `--session-stdin`?
-  Check with `--launch-api`.
+- **Horizon's files:** builds in `<data>/horizon/versions/` (newest two kept), Minecraft
+  downloaded from Mojang in `<data>/horizon/minecraft/` when the official launcher's folder has no
+  usable copy, and the game folder in `<data>/horizon/home/`, passed as `--game-dir` and `--home`.
+
+- **Launch API check:** the 2026-11-01 nightly answers `--launch-api` with `--resources`,
+  `--game-dir`, `--home`, `--width`, `--height`, `--fullscreen`, `--session-file`,
+  `--session-stdin`, `--quickPlaySingleplayer` and `--quickPlayMultiplayer`.

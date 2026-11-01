@@ -1,6 +1,8 @@
 //! The window: sidebar, edition header with tabs, and the selected page.
 
 use crate::bedrock::Bedrock;
+use crate::horizon::Horizon;
+use crate::java::Java;
 use crate::theme;
 use crate::widgets::{button, edition_icon, heading, label};
 use gpui::{
@@ -12,7 +14,6 @@ use std::sync::Arc;
 
 pub const LOGO: &[u8] = include_bytes!("../../../assets/logo-256.png");
 const REPO_URL: &str = "https://github.com/RustLauncherMC/Launcher";
-const HORIZON_URL: &str = "https://github.com/horizon-rust/horizon";
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Page {
@@ -34,6 +35,8 @@ pub struct Launcher {
     pub agent: rlmc_core::ureq::Agent,
     pub logo: Arc<Image>,
     pub bedrock: Bedrock,
+    pub java: Java,
+    pub horizon: Horizon,
 }
 
 impl Launcher {
@@ -46,9 +49,12 @@ impl Launcher {
             agent: rlmc_core::http(),
             logo: Arc::new(Image::from_bytes(ImageFormat::Png, LOGO.to_vec())),
             bedrock: Bedrock::default(),
+            java: Java::default(),
+            horizon: Horizon::default(),
         };
         launcher.find_bedrock(cx);
         launcher.fetch_bedrock_release(cx);
+        launcher.fetch_horizon_release(cx);
         launcher
     }
 
@@ -102,7 +108,7 @@ impl Launcher {
                 Page::Edition(Edition::Java),
                 edition_icon(theme::java()),
                 "Java Edition",
-                "Horizon · coming soon",
+                "Horizon",
                 cx,
             ))
             .child(self.sidebar_item(
@@ -234,34 +240,7 @@ impl Launcher {
 
     // Pages
 
-    fn java_page(&self, cx: &mut Context<Self>) -> Div {
-        let hero = hero(theme::java(), self.logo.clone())
-            .child(heading("Horizon support is coming", 26.))
-            .child(
-                label(
-                    "Horizon is Minecraft: Java Edition rewritten in Rust. To launch it, \
-                     RustLauncherMC must sign you in with Microsoft and check that you own \
-                     Java Edition, which needs a sign-in app approved by Mojang. Bedrock \
-                     support comes first.",
-                    15.,
-                    theme::muted(),
-                )
-                .max_w(px(560.))
-                .text_center(),
-            )
-            .child(
-                button("java-horizon", "About Horizon")
-                    .on_click(|_, _, cx| cx.open_url(HORIZON_URL)),
-            );
-        div()
-            .flex_1()
-            .flex()
-            .flex_col()
-            .child(self.header("JAVA EDITION", "Horizon", &[(Tab::Play, "Play")], cx))
-            .child(hero)
-    }
-
-    fn settings_page(&self, cx: &mut Context<Self>) -> Div {
+    fn settings_page(&mut self, cx: &mut Context<Self>) -> Div {
         let channel = self.settings.cinnabar_channel;
         let mut channels = div().flex().gap(px(8.));
         for option in rlmc_core::cinnabar::Channel::ALL {
@@ -307,6 +286,14 @@ impl Launcher {
                     .flex()
                     .flex_col()
                     .gap(px(8.))
+                    .child(section("Java Edition accounts"))
+                    .child(label(
+                        "Microsoft accounts for Horizon. Sign-in tokens are kept in your \
+                         system's password storage, never in a plain file.",
+                        13.,
+                        theme::muted(),
+                    ))
+                    .child(self.accounts_settings(cx))
                     .child(section("Bedrock Edition (Cinnabar)"))
                     .child(label(
                         "Which Cinnabar releases to install. Nightly is rebuilt every day. \

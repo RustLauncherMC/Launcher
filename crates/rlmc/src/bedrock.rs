@@ -2,7 +2,7 @@
 
 use crate::launcher::{hero, Launcher, Tab};
 use crate::theme;
-use crate::widgets::{button, disabled, heading, label, notes, progress_bar};
+use crate::widgets::{button, disabled, heading, label, progress_bar, release_notes, IntoDiv};
 use gpui::{div, prelude::*, px, ClickEvent, Context, Div, FontWeight, SharedString};
 use rlmc_core::cinnabar::{self, BuildInfo, Channel, Install};
 use rlmc_core::download::Progress;
@@ -31,15 +31,7 @@ pub struct Bedrock {
 
 /// The outermost message, which is written for players; the full chain goes to the log.
 fn err(e: anyhow::Error) -> String {
-    eprintln!("RustLauncherMC: {e:#}");
-    let text = e.to_string();
-    let mut chars = text.chars();
-    let mut first: String = chars
-        .next()
-        .map(|c| c.to_uppercase().collect())
-        .unwrap_or_default();
-    first.extend(chars);
-    first
+    crate::widgets::friendly(e)
 }
 
 impl Launcher {
@@ -384,7 +376,11 @@ impl Launcher {
             .flex()
             .items_center()
             .gap(px(16.))
-            .child(crate::widgets::edition_icon(theme::bedrock()).size(px(44.)));
+            .child(
+                crate::widgets::edition_icon(theme::bedrock())
+                    .size(px(44.))
+                    .flex_none(),
+            );
         let card = match &b.install {
             Some(install) => {
                 let version = match &b.build {
@@ -396,15 +392,14 @@ impl Launcher {
                 card.child(
                     div()
                         .flex_1()
+                        .min_w(px(0.))
                         .flex()
                         .flex_col()
                         .gap(px(2.))
                         .child(heading("Cinnabar", 16.))
                         .child(label(version, 13., theme::muted()))
-                        .child(label(
+                        .child(crate::widgets::path_label(
                             install.folder.display().to_string(),
-                            12.,
-                            theme::faint(),
                         )),
                 )
                 .child(
@@ -469,84 +464,14 @@ impl Launcher {
     }
 
     fn bedrock_notes(&self, cx: &mut Context<Self>) -> Div {
-        let content = match &self.bedrock.release {
-            None => label("Loading release notes…", 14., theme::muted()),
-            Some(Err(e)) => div()
-                .flex()
-                .flex_col()
-                .gap(px(8.))
-                .child(label("Could not load release notes.", 14., theme::text()))
-                .child(label(e.clone(), 12., theme::faint()))
-                .child(
-                    div()
-                        .flex()
-                        .child(button("notes-retry", "Try again").on_click(cx.listener(
-                            |this, _: &ClickEvent, _, cx| this.fetch_bedrock_release(cx),
-                        ))),
-                ),
-            Some(Ok(release)) => {
-                let url = release
-                    .html_url
-                    .clone()
-                    .unwrap_or_else(|| cinnabar::RELEASES_URL.to_string());
-                div()
-                    .flex()
-                    .flex_col()
-                    .gap(px(10.))
-                    .child(
-                        div()
-                            .flex()
-                            .items_center()
-                            .justify_between()
-                            .child(
-                                div()
-                                    .flex()
-                                    .flex_col()
-                                    .child(heading(release.title().to_string(), 22.))
-                                    .child(label(
-                                        format!(
-                                            "{} · {}",
-                                            self.settings.cinnabar_channel.label(),
-                                            release.date().unwrap_or("")
-                                        ),
-                                        13.,
-                                        theme::muted(),
-                                    )),
-                            )
-                            .child(
-                                button("notes-github", "View on GitHub")
-                                    .on_click(move |_, _, cx| cx.open_url(&url)),
-                            ),
-                    )
-                    .child(div().h(px(1.)).bg(theme::border()))
-                    .child(
-                        match release.body.as_deref().filter(|b| !b.trim().is_empty()) {
-                            Some(body) => notes(body),
-                            None => label("This release has no notes.", 14., theme::muted()),
-                        },
-                    )
-            }
-        };
-        div()
-            .id("notes-scroll")
-            .flex_1()
-            .overflow_y_scroll()
-            .overflow_x_hidden()
-            .px(px(32.))
-            .py(px(24.))
-            .child(content)
-            .into_any_element_div()
-    }
-}
-
-/// Scrolling containers need an id, which makes them `Stateful<Div>`; the pages are plain
-/// `Div`s, so wrap them.
-trait IntoDiv {
-    fn into_any_element_div(self) -> Div;
-}
-
-impl IntoDiv for gpui::Stateful<Div> {
-    fn into_any_element_div(self) -> Div {
-        div().flex_1().flex().flex_col().min_h(px(0.)).child(self)
+        let retry = button("notes-retry", "Try again")
+            .on_click(cx.listener(|this, _: &ClickEvent, _, cx| this.fetch_bedrock_release(cx)))
+            .into_any_element();
+        release_notes(
+            self.bedrock.release.as_ref(),
+            self.settings.cinnabar_channel.label(),
+            cinnabar::RELEASES_URL,
+            retry,
+        )
     }
 }

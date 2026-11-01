@@ -8,9 +8,29 @@ repository.workspace = true
 
 [dependencies]
 anyhow = "1"
+# Horizon's signed releases: Ed25519 over SHA256SUMS (horizon/sign.rs). ring is already built
+# for HTTPS.
+base64 = "0.22"
+ring = "0.17"
+# Mojang's files are listed with SHA-1 (horizon/mojang.rs).
+sha1 = "0.10"
+# Unpacking Horizon builds: .tar.gz on Linux, .zip on Windows (horizon/extract.rs).
+flate2 = "1"
+tar = { version = "0.4", default-features = false }
+zip = { version = "2", default-features = false, features = ["deflate"] }
 dirs = "5"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sha2 = "0.10"
 tempfile = "3"
-ureq = { version = "2", features = ["json", "tls"], default-features = false }
+# `native-certs`: trust the system's certificates, so the launcher also works behind a proxy that
+# the system trusts.
+ureq = { version = "2", features = ["json", "tls", "native-certs"], default-features = false }
+
+# Microsoft sign-in secrets in the system's password storage (accounts.rs).
+[target.'cfg(windows)'.dependencies]
+keyring = { version = "3", features = ["windows-native"] }
+[target.'cfg(target_os = "linux")'.dependencies]
+# The Secret Service over D-Bus (GNOME Keyring, KWallet). `vendored` builds libdbus, so no
+# system development package is needed.
+keyring = { version = "3", features = ["sync-secret-service", "crypto-rust", "vendored"] }
