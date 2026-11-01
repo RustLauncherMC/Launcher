@@ -1,0 +1,18 @@
+[package]
+name = "rlmc"
+description = "RustLauncherMC: one launcher for Minecraft rewritten in Rust"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "rustlauncher"
+path = "src/main.rs"
+
+[dependencies]
+rlmc-core = { path = "../rlmc-core" }
+# GPUI Fast (longbridge/gpui-fast, Apache-2.0): Zed's GPUI, as Horizon's launcher uses.
+gpui = { package = "gpui-fast", version = "0.1.12" }
+gpui_platform = { package = "gpui-fast-platform", version = "0.1.12", features = ["wayland", "x11", "font-kit"] }
+anyhow = "1"

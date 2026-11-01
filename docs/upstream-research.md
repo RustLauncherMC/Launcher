@@ -223,9 +223,17 @@ PolyForm Noncommercial 1.0.0:
    - Cinnabar: noncommercial terms apply because we download and run it; we don't redistribute it.
    - Horizon code we reuse: keep the notices in `THIRD_PARTY_NOTICES.md`.
 
+## Decisions
+
+- **UI toolkit: GPUI** (`gpui-fast`, as Horizon's launcher uses), so Horizon's launcher code can
+  serve as a reference.
+- **Bedrock first:** Cinnabar needs no sign-in from us. Java follows once we have a
+  Mojang-approved Azure app.
+- **Cinnabar updates:** the game owns them. The launcher installs the first copy (or reinstalls on
+  request), shows the installed version and the latest release, and launches it.
+
 ## Open questions
-- Will we apply for an Azure client ID now, or start with Bedrock (which needs none) and add Java
-  later?
-- Which UI toolkit: GPUI (reuse Horizon), `iced`, or `egui`?
+
+- When do we apply for the Azure client ID for Java sign-in?
 - Does Horizon's current nightly already have `--game-dir`, `--home` and `--session-stdin`?
   Check with `--launch-api`.

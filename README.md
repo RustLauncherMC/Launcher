@@ -24,14 +24,28 @@ familiar from the first click.
 > Minecraft code, assets or data.
 
 > [!NOTE]
-> The project is at the very start. There is no release yet, and the features below are the plan,
-> not what works today.
+> Early development, with no release yet. Bedrock Edition (Cinnabar) can be installed and launched
+> today when you build from source. Java Edition (Horizon) comes next.
 
 ## Why
 
 Horizon and Cinnabar each ship their own launcher. If you play both editions, you keep two
 launchers, two sign-ins and two update channels. RustLauncherMC puts them side by side, the same
 way the official launcher puts Java and Bedrock side by side.
+
+## What works today
+
+- **The launcher window:** the official launcher's layout, with an edition sidebar, Play,
+  Installations and Patch notes tabs, and a bottom bar with the channel and a big green Play
+  button. Built with [GPUI](https://github.com/longbridge/gpui-fast), like Horizon's launcher.
+- **Bedrock Edition through Cinnabar:**
+  - Finds an existing Cinnabar install.
+  - Installs the latest Beta or Nightly from GitHub, checked against the release's SHA-256 sums.
+    On Linux it uses the same layout as Cinnabar's own `install.sh`; on Windows it runs the
+    official MSI.
+  - Shows the installed version and launches the game.
+  - Shows the release notes.
+- **Settings:** release channel, folders, and license information.
 
 ## Planned features
 
@@ -62,30 +76,48 @@ installed, signed in and launched, see [docs/upstream-research.md](docs/upstream
 
 | Platform | Support |
 | --- | --- |
-| Windows 10 and 11 (x64) | Planned |
-| Linux (x86-64) | Planned |
+| Windows 10 and 11 (x64) | In development |
+| Linux (x86-64) | In development |
 | macOS | Not planned |
 
 ## Roadmap
 
-- [ ] Launcher window and official-style layout
-- [ ] Microsoft account sign-in (device code)
-- [ ] Download and install Horizon releases
-- [ ] Download and install Cinnabar releases
+- [x] Launcher window and official-style layout
+- [x] Download, verify, install and launch Cinnabar releases
+- [x] Cinnabar patch notes
+- [ ] Microsoft account sign-in (device code), with our own Mojang-approved app
+- [ ] Download, prepare and launch Horizon releases
 - [ ] Installations (profiles) per edition
-- [ ] Patch notes feed
 - [ ] Launcher self-update
 - [ ] Windows installer and Linux packages (AppImage, .deb)
 
 ## Building
 
-There is no code to build yet. Once there is, it will be a standard Cargo project:
+You need a recent stable Rust (tested with 1.97).
+
+On Linux, install GPUI's libraries first. On Debian and Ubuntu:
+
+```sh
+sudo apt-get install libxkbcommon-x11-dev libwayland-dev libx11-xcb-dev libfontconfig-dev libvulkan-dev
+```
+
+Then:
 
 ```sh
 git clone https://github.com/RustLauncherMC/Launcher.git
 cd Launcher
 cargo run --release
 ```
+
+The workspace has two crates:
+
+| Crate | What it is |
+| --- | --- |
+| [`crates/rlmc-core`](crates/rlmc-core) | The backend, with no UI: GitHub releases, verified downloads, settings, and Cinnabar's install, version and launch |
+| [`crates/rlmc`](crates/rlmc) | The GPUI app (`rustlauncher` binary) |
+
+`cargo test --workspace` runs the tests. Set `RUSTLAUNCHERMC_HOME=/some/absolute/folder` to keep
+the launcher's settings and downloads in a separate folder while testing.
 
 ## Contributing
 
@@ -101,6 +133,7 @@ artwork.
 
 ## License
 
-[MIT](LICENSE). Horizon (MIT) and Cinnabar (PolyForm Noncommercial 1.0.0) are separate projects
-under their own licenses. The launcher downloads them from their official releases and does not
-bundle them. Because of Cinnabar's license, RustLauncherMC is and stays noncommercial.
+[MIT](LICENSE). Bundled third-party parts are listed in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Horizon (MIT) and Cinnabar (PolyForm
+Noncommercial 1.0.0) are separate projects under their own licenses. The launcher downloads
+them from their official releases and does not bundle them. Because of Cinnabar's license, RustLauncherMC is and stays noncommercial.
