@@ -18,11 +18,15 @@ const CHUNK: usize = 1200;
 /// Renew the Minecraft token when it has less than this left.
 const RENEW_BEFORE: u64 = 60 * 60;
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Account {
     /// Without dashes, as Minecraft's API gives it.
     pub uuid: String,
     pub name: String,
+    /// Signed in to Horizon's own launcher rather than here: its sessions come from there
+    /// ([`crate::horizon::bridge`]), and no secret of it is stored here.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub via_horizon: bool,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -222,6 +226,7 @@ pub fn add(
     let account = Account {
         uuid: mc.uuid,
         name: mc.name,
+        via_horizon: false,
     };
     accounts.put(account.clone());
     Ok(account)
@@ -252,6 +257,66 @@ pub enum Launch {
     /// Minecraft could not be reached, but this account owned the game last time: play
     /// offline under its name.
     Offline(Account),
+    /// An account of Horizon's own launcher, which owns the game: ask that launcher for a
+    /// session file right before starting ([`crate::horizon::bridge`]).
+    Horizon(Account),
+}
+
+/// Adds the accounts of Horizon's own launcher that aren't here yet, and selects the one it
+/// selected. Refused when none of them owns Java Edition. Returns how many were added.
+pub fn use_horizon_accounts(
+    accounts: &mut Accounts,
+    list: &crate::horizon::bridge::AccountList,
+) -> Result<usize> {
+    if list.accounts.is_empty() {
+        bail!("No Microsoft account is signed in to Horizon's launcher");
+    }
+    if !list.owner {
+        bail!("No account in Horizon's launcher owns Minecraft: Java Edition");
+    }
+    let mut added = 0;
+    for borrowed in &list.accounts {
+        if !accounts.accounts.iter().any(|a| a.uuid == borrowed.uuid) {
+            accounts.accounts.push(Account {
+                uuid: borrowed.uuid.clone(),
+                name: borrowed.name.clone(),
+                via_horizon: true,
+            });
+            added += 1;
+        }
+    }
+    let pick = list
+        .accounts
+        .iter()
+        .find(|a| a.selected)
+        .unwrap_or(&list.accounts[0]);
+    accounts.selected = Some(pick.uuid.clone());
+    Ok(added)
+}
+
+/// For an account of Horizon's own launcher: checks it is still signed in there and that one of
+/// its accounts owns the game, before anything is downloaded.
+pub fn launch_via_horizon(
+    horizon: Option<&crate::horizon::bridge::HorizonLauncher>,
+    account: &Account,
+) -> Result<Launch> {
+    let Some(horizon) = horizon else {
+        bail!(
+            "{} is signed in through Horizon's launcher, which isn't found. Choose it in Settings",
+            account.name
+        );
+    };
+    let list = horizon.accounts()?;
+    if !list.accounts.iter().any(|a| a.uuid == account.uuid) {
+        bail!(
+            "{} is no longer signed in to Horizon's launcher",
+            account.name
+        );
+    }
+    if !list.owner {
+        bail!("{} doesn't own Minecraft: Java Edition", account.name);
+    }
+    Ok(Launch::Horizon(account.clone()))
 }
 
 /// Checks the account before a launch, as Horizon's launcher does: renews the Minecraft token
@@ -350,10 +415,12 @@ mod tests {
         let a = Account {
             uuid: "a".into(),
             name: "Alex".into(),
+            ..Default::default()
         };
         let b = Account {
             uuid: "b".into(),
             name: "Steve".into(),
+            ..Default::default()
         };
         accounts.put(a.clone());
         accounts.put(b.clone());
@@ -361,6 +428,7 @@ mod tests {
         accounts.put(Account {
             uuid: "a".into(),
             name: "Alex2".into(),
+            ..Default::default()
         });
         assert_eq!(accounts.accounts.len(), 2);
         assert_eq!(accounts.selected().unwrap().name, "Alex2");
@@ -387,11 +455,71 @@ mod tests {
     }
 
     #[test]
+    fn horizon_accounts_are_added_once_and_need_an_owner() {
+        use crate::horizon::bridge::{AccountList, BorrowedAccount};
+        let borrowed = |uuid: &str, selected| BorrowedAccount {
+            name: format!("P{uuid}"),
+            uuid: uuid.into(),
+            selected,
+        };
+        let mut accounts = Accounts::default();
+        accounts.put(Account {
+            uuid: "a".into(),
+            name: "Mine".into(),
+            ..Default::default()
+        });
+        let list = AccountList {
+            accounts: vec![borrowed("a", false), borrowed("b", true)],
+            owner: true,
+        };
+        assert_eq!(use_horizon_accounts(&mut accounts, &list).unwrap(), 1);
+        assert_eq!(accounts.selected().unwrap().uuid, "b");
+        assert!(accounts.selected().unwrap().via_horizon);
+        // The account signed in here stays as it is.
+        assert!(!accounts.accounts[0].via_horizon);
+        assert_eq!(use_horizon_accounts(&mut accounts, &list).unwrap(), 0);
+
+        let no_owner = AccountList {
+            owner: false,
+            ..list
+        };
+        assert!(use_horizon_accounts(&mut accounts, &no_owner).is_err());
+        let empty = AccountList {
+            accounts: vec![],
+            owner: true,
+        };
+        assert!(use_horizon_accounts(&mut accounts, &empty).is_err());
+    }
+
+    #[test]
+    fn a_horizon_account_without_horizons_launcher_is_explained() {
+        let account = Account {
+            uuid: "a".into(),
+            name: "Alex".into(),
+            via_horizon: true,
+        };
+        let e = launch_via_horizon(None, &account).unwrap_err();
+        assert!(e.to_string().contains("Choose it in Settings"));
+        // Its stored form says where it comes from; an account signed in here doesn't.
+        assert!(serde_json::to_string(&account)
+            .unwrap()
+            .contains("via_horizon"));
+        let mine = Account {
+            via_horizon: false,
+            ..account
+        };
+        assert!(!serde_json::to_string(&mine)
+            .unwrap()
+            .contains("via_horizon"));
+    }
+
+    #[test]
     fn launching_a_forgotten_account_asks_to_sign_in() {
         let store = MemoryStore::default();
         let account = Account {
             uuid: "a".into(),
             name: "Alex".into(),
+            ..Default::default()
         };
         let e = launch(&crate::http(), &store, &account).unwrap_err();
         assert!(e.to_string().contains("sign in again"));

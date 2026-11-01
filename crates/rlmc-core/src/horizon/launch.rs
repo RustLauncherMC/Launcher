@@ -3,7 +3,8 @@
 //! 1. Ask the build which options it takes (`--launch-api`); pass only those, since any other
 //!    is refused with exit code 2.
 //! 2. Start it with the prepared resources and a game folder, handing the signed-in account
-//!    over on standard input (`--session-stdin`), never on the command line.
+//!    over on standard input (`--session-stdin`), or as the read-once file Horizon's own launcher
+//!    writes (`--session-file`), never on the command line.
 //! 3. Watch the exit code: on 1 or 101 the last stderr line names the crash report.
 
 use super::Build;
@@ -53,12 +54,23 @@ pub struct StartOptions {
     pub server: Option<String>,
 }
 
+/// How the game gets the player's account.
+#[derive(Clone, Copy, Debug)]
+pub enum Auth<'a> {
+    /// No account: the game runs offline.
+    Offline,
+    /// A session signed in here, written to the game's standard input.
+    Session(&'a Session),
+    /// A read-once session file from Horizon's own launcher ([`super::bridge`]).
+    SessionFile(&'a Path),
+}
+
 /// The arguments for a start, from the options the build takes.
 fn arguments(
     options: &[String],
     resources: &Path,
     home: &Path,
-    online: bool,
+    auth: Auth<'_>,
     start: &StartOptions,
 ) -> Result<Vec<String>> {
     let has = |name: &str| options.iter().any(|o| o == name);
@@ -72,11 +84,21 @@ fn arguments(
             args.push(home.display().to_string());
         }
     }
-    if online {
-        if !has("--session-stdin") {
-            bail!("this Horizon build can't receive a sign-in safely (no --session-stdin)");
+    match auth {
+        Auth::Offline => {}
+        Auth::Session(_) => {
+            if !has("--session-stdin") {
+                bail!("this Horizon build can't receive a sign-in safely (no --session-stdin)");
+            }
+            args.push("--session-stdin".into());
         }
-        args.push("--session-stdin".into());
+        Auth::SessionFile(file) => {
+            if !has("--session-file") {
+                bail!("this Horizon build can't receive a session file (no --session-file)");
+            }
+            args.push("--session-file".into());
+            args.push(file.display().to_string());
+        }
     }
     if start.fullscreen && has("--fullscreen") {
         args.push("--fullscreen".into());
@@ -113,22 +135,15 @@ fn crash_report(lines: &[String]) -> Option<String> {
         .map(|p| p.trim().to_string())
 }
 
-/// Starts the game. With `session`, the player can join online-mode servers; without, the game
-/// runs offline.
-pub fn start(
-    build: &Build,
-    session: Option<&Session>,
-    home: &Path,
-    start: &StartOptions,
-) -> Result<Game> {
+/// Starts the game. With a session (here or from Horizon's launcher), the player can join
+/// online-mode servers; offline, the game runs without an account.
+pub fn start(build: &Build, auth: Auth<'_>, home: &Path, start: &StartOptions) -> Result<Game> {
     let options = options(build)?;
-    let args = arguments(
-        &options,
-        &build.prepared_dir(),
-        home,
-        session.is_some(),
-        start,
-    )?;
+    let args = arguments(&options, &build.prepared_dir(), home, auth, start)?;
+    let session = match auth {
+        Auth::Session(session) => Some(session),
+        Auth::Offline | Auth::SessionFile(_) => None,
+    };
     std::fs::create_dir_all(home)?;
     let mut command = Command::new(build.client());
     quiet(&mut command);
@@ -190,19 +205,32 @@ mod tests {
         {"name":"--resources","value":"DIR"},{"name":"--game-dir","value":"DIR"},
         {"name":"--home","value":"DIR"},{"name":"--session-stdin"}]}"#;
 
+    fn session() -> Session {
+        Session {
+            name: "Alex".into(),
+            uuid: "069a79f444e94726a5befca90e38aaf5".into(),
+            access_token: "t".into(),
+            user_type: "msa",
+            xuid: None,
+        }
+    }
+
+    fn args(options: &[String], auth: Auth<'_>) -> Result<Vec<String>> {
+        arguments(
+            options,
+            Path::new("/p"),
+            Path::new("/h"),
+            auth,
+            &StartOptions::default(),
+        )
+    }
+
     #[test]
     fn passes_only_options_the_build_takes() {
         let options = parse_options(REPLY.as_bytes()).unwrap();
-        let args = arguments(
-            &options,
-            Path::new("/p"),
-            Path::new("/h"),
-            true,
-            &StartOptions::default(),
-        )
-        .unwrap();
+        let session = session();
         assert_eq!(
-            args,
+            args(&options, Auth::Session(&session)).unwrap(),
             [
                 "--resources",
                 "/p",
@@ -213,44 +241,13 @@ mod tests {
                 "--session-stdin"
             ]
         );
-        let offline = arguments(
-            &options,
-            Path::new("/p"),
-            Path::new("/h"),
-            false,
-            &StartOptions::default(),
-        )
-        .unwrap();
+        let offline = args(&options, Auth::Offline).unwrap();
         assert!(!offline.contains(&"--session-stdin".to_string()));
 
         let old = vec!["--resources".to_string()];
-        assert_eq!(
-            arguments(
-                &old,
-                Path::new("/p"),
-                Path::new("/h"),
-                false,
-                &StartOptions::default()
-            )
-            .unwrap(),
-            ["--resources", "/p"]
-        );
-        assert!(arguments(
-            &old,
-            Path::new("/p"),
-            Path::new("/h"),
-            true,
-            &StartOptions::default()
-        )
-        .is_err());
-        assert!(arguments(
-            &[],
-            Path::new("/p"),
-            Path::new("/h"),
-            false,
-            &StartOptions::default()
-        )
-        .is_err());
+        assert_eq!(args(&old, Auth::Offline).unwrap(), ["--resources", "/p"]);
+        assert!(args(&old, Auth::Session(&session)).is_err());
+        assert!(args(&[], Auth::Offline).is_err());
 
         let join = StartOptions {
             fullscreen: true,
@@ -261,13 +258,32 @@ mod tests {
             "--fullscreen".to_string(),
             "--quickPlayMultiplayer".to_string(),
         ]);
-        let args = arguments(&all, Path::new("/p"), Path::new("/h"), false, &join).unwrap();
+        let args = arguments(&all, Path::new("/p"), Path::new("/h"), Auth::Offline, &join).unwrap();
         assert!(args.ends_with(&[
             "--fullscreen".to_string(),
             "--quickPlayMultiplayer".to_string(),
             "play.example.net".to_string()
         ]));
-        assert!(arguments(&options, Path::new("/p"), Path::new("/h"), false, &join).is_err());
+        assert!(arguments(
+            &options,
+            Path::new("/p"),
+            Path::new("/h"),
+            Auth::Offline,
+            &join
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn hands_over_a_session_file_from_horizons_launcher() {
+        let mut options = parse_options(REPLY.as_bytes()).unwrap();
+        let file = Path::new("/home/a/.local/share/horizon/sessions/session-ab.json");
+        // This build takes no --session-file: refused rather than started without the account.
+        assert!(args(&options, Auth::SessionFile(file)).is_err());
+        options.push("--session-file".into());
+        let with_file = args(&options, Auth::SessionFile(file)).unwrap();
+        assert!(with_file.ends_with(&["--session-file".to_string(), file.display().to_string()]));
+        assert!(!with_file.contains(&"--session-stdin".to_string()));
     }
 
     #[test]

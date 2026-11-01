@@ -232,6 +232,14 @@ PolyForm Noncommercial 1.0.0:
 - **Cinnabar updates:** the game owns them. The launcher installs the first copy (or reinstalls on
   request), shows the installed version and the latest release, and launches it.
 
+- **Sign-in through Horizon's launcher:** besides our own Microsoft sign-in, Java accounts can come
+  from Horizon's own launcher. `horizon-launcher account list --json` gives the accounts and an
+  `owner` flag, checked before any download. Right before the start,
+  `horizon-launcher account session <uuid> --json` renews the account through Horizon's approved
+  app, checks ownership again and writes a read-once session file, which goes to
+  `horizon-client --session-file`. Horizon's launcher commands are a preview API
+  (`docs/api/stability.md` upstream); `account session` is described as the game's own handoff,
+  so check with the Horizon maintainers that other launchers may rely on it.
 - **Microsoft sign-in:** our own Azure app, client ID `01fcbd6d-d954-499a-8c3a-0c837eef86ac`.
   It must be set to personal Microsoft accounts with public client flows on. Mojang's approval was
   requested on 2026-11-01.

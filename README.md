@@ -38,7 +38,7 @@ Rust) from one window, laid out like the official Minecraft Launcher.
 | | Status |
 | --- | --- |
 | **Bedrock Edition** (Cinnabar) | Works: install, update, launch, installations, Join a server. Cinnabar signs you in inside the game. |
-| **Java Edition** (Horizon) | Install, prepare and launch work. **Microsoft sign-in is waiting for Mojang** to approve the launcher's sign-in app; until then, Minecraft refuses the last sign-in step. |
+| **Java Edition** (Horizon) | Install, prepare and launch work. **Our Microsoft sign-in is waiting for Mojang** to approve the launcher's sign-in app; until then, you can play with the accounts of Horizon's own launcher. |
 | **The launcher** | Signed releases, installers and self-update are in place. |
 
 ## Download
@@ -104,6 +104,11 @@ Each game's own README is the source of truth for its requirements.
   - Points you to the crash report if the game crashes.
 - **Microsoft sign-in** with a short code at microsoft.com/link. Tokens are kept only in your
   system's password storage (Windows Credential Manager, or GNOME Keyring or KWallet on Linux).
+- **Accounts from Horizon's launcher:** if you already use Horizon's own launcher, **Use my
+  Horizon launcher account** plays with the accounts signed in there. Horizon's launcher signs
+  in, checks that you own Java Edition, and hands the game a one-time session file;
+  RustLauncherMC never sees the tokens. It's found on `PATH` or through its Linux menu entry, or
+  chosen in Settings.
 - **Installations:** several per edition, each with its own worlds and settings. Java ones can
   open fullscreen.
 - **Join a server:** type an address on the Play tab, and the game joins it as it starts.
@@ -117,7 +122,9 @@ Each game's own README is the source of truth for its requirements.
 Cinnabar.
 
 **Why does Java sign-in say the app isn't approved?** Minecraft only lets apps that Mojang has
-approved sign players in, and RustLauncherMC's app is still in review. Bedrock isn't affected.
+approved sign players in, and RustLauncherMC's app is still in review. Bedrock isn't affected,
+and if you already use Horizon's own launcher, you can play Java Edition with its accounts:
+choose **Use my Horizon launcher account**.
 
 **Can servers ban me?** Cinnabar's README warns that its movement and combat may not match the
 official client yet, so some anticheats may flag it. Play on servers at your own risk.
