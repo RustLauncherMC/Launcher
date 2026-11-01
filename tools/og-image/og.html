@@ -1,0 +1,119 @@
+<!doctype html>
+<!-- RustLauncherMC's social preview image (Open Graph and Twitter), 1200 × 630.
+     Render it with `node tools/og-image/render.js`, which writes website/og.png. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: "Bricolage Grotesque"; src: url("../../website/fonts/BricolageGrotesque.woff2") format("woff2"); font-weight: 200 800; }
+  @font-face { font-family: "Geist"; src: url("../../website/fonts/Geist.woff2") format("woff2"); font-weight: 100 900; }
+  :root { --rust: #f0795a; --rust-3: #b7410e; --fg: #f5f2ee; --muted: #aca69e; }
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    position: relative;
+    background:
+      radial-gradient(ellipse 620px 520px at 930px 380px, rgba(240, 121, 90, 0.30), rgba(183, 65, 14, 0.08) 60%, transparent 75%),
+      #131416;
+    color: var(--fg);
+    font-family: "Geist", sans-serif;
+  }
+  .grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 90% at 30% 40%, #000 20%, transparent 80%);
+  }
+  .left { position: absolute; left: 76px; top: 64px; width: 700px; }
+  .brand { display: flex; align-items: center; gap: 16px; font: 700 34px "Bricolage Grotesque"; letter-spacing: -0.01em; }
+  .brand img { width: 62px; height: 62px; }
+  .brand em { font-style: normal; color: var(--rust); }
+  h1 {
+    margin: 44px 0 0; font: 800 76px/0.98 "Bricolage Grotesque"; letter-spacing: -0.035em;
+  }
+  .rust {
+    background: linear-gradient(100deg, #ffb39f, var(--rust) 40%, var(--rust-3));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  p { margin: 26px 0 0; width: 600px; font-size: 25px; line-height: 1.4; color: #d6d0c8; }
+  .tags { position: absolute; left: 76px; bottom: 60px; display: flex; gap: 12px; }
+  .tag { display: flex; align-items: center; gap: 10px; padding: 9px 18px; border-radius: 999px; font: 600 20px "Geist"; }
+  .tag i { width: 14px; height: 14px; box-shadow: inset 0 4px 0 #6db33f; }
+  .java { background: #3b2f7e; }
+  .java i { background: #6a5ad8; }
+  .bedrock { background: #b22222; }
+  .bedrock i { background: #e04444; }
+  .os { border: 2px solid rgba(109, 179, 63, 0.8); color: #a6dd7f; }
+  .free { border: 2px solid rgba(255, 255, 255, 0.18); color: var(--muted); }
+  .art { position: absolute; right: 40px; top: 70px; width: 470px; height: 470px; }
+  canvas { position: absolute; inset: 0; width: 470px; height: 470px; image-rendering: pixelated; }
+  .block { position: absolute; left: 115px; top: 95px; width: 240px; height: 279px; filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.55)); }
+  .small { position: absolute; width: 70px; height: 81px; filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.5)); }
+  .s1 { right: 18px; top: 10px; transform: rotate(10deg); --l: #3b2f7e; --r: #2c235f; }
+  .s2 { right: 70px; bottom: 0; width: 58px; height: 67px; transform: rotate(-8deg); --l: #8a1a1a; }
+</style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <symbol id="block" viewBox="0 0 112 130">
+        <polygon points="0,32 56,64 56,130 0,98" fill="var(--l, #3B2F7E)"/>
+        <polygon points="56,64 112,32 112,98 56,130" fill="var(--r, #B22222)"/>
+        <polygon points="56,0 112,32 56,64 0,32" fill="#6DB33F"/>
+        <polygon points="0,32 56,64 56,74 42,66 42,72 28,64 28,58 14,50 14,56 0,48" fill="#5D9C3F"/>
+        <polygon points="56,64 112,32 112,44 98,52 98,46 84,54 84,62 70,70 70,66 56,74" fill="#4E8A33"/>
+        <polygon points="56,0 112,32 104,36.6 56,9" fill="#fff" fill-opacity=".18"/>
+      </symbol>
+    </defs>
+  </svg>
+  <div class="grid"></div>
+
+  <div class="left">
+    <div class="brand"><img src="../../website/img/logo.svg" alt=""><span>RustLauncher<em>MC</em></span></div>
+    <h1>Every Rust edition.<br><span class="rust">One launcher.</span></h1>
+    <p>Install, update and play Horizon and Cinnabar from one window, laid out like the official launcher.</p>
+  </div>
+
+  <div class="tags">
+    <span class="tag java"><i></i>Java · Horizon</span>
+    <span class="tag bedrock"><i></i>Bedrock · Cinnabar</span>
+    <span class="tag os">Windows · Linux</span>
+    <span class="tag free">Free and open source</span>
+  </div>
+
+  <div class="art">
+    <canvas id="cog" width="120" height="120"></canvas>
+    <svg class="small s1"><use href="#block"/></svg>
+    <svg class="small s2"><use href="#block"/></svg>
+    <svg class="block" viewBox="0 0 112 130"><use href="#block"/><polygon points="41,85 41,117 69,101" fill="#fff"/></svg>
+  </div>
+
+  <script>
+    // The website's pixel cog, still: 24 teeth, a band and an inner ring, lit from the top left.
+    const canvas = document.getElementById("cog");
+    const N = canvas.width, c = N / 2, ctx = canvas.getContext("2d");
+    const image = ctx.createImageData(N, N);
+    const shades = ["#ffb39f", "#f0795a", "#d65f3a", "#b7410e", "#7c2c0c"].map((h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)));
+    const k = N / 152; // the website's cog is 152 pixels across
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      const dx = x + 0.5 - c, dy = y + 0.5 - c, r = Math.hypot(dx, dy) / k, a = Math.atan2(dy, dx);
+      let edge = -1;
+      if (r >= 46 && r < 51) edge = Math.min(r - 46, 51 - r);
+      else if (r >= 55 && r < 63) edge = Math.min(r - 55, 63 - r);
+      else if (r >= 63 && r < 73) {
+        const tooth = (((a / (Math.PI * 2)) * 24) % 1 + 1) % 1;
+        if (tooth < 0.5) edge = Math.min(73 - r, tooth * 9, (0.5 - tooth) * 9);
+      }
+      if (edge < 0) continue;
+      const facing = Math.cos(a + (3 * Math.PI) / 4);
+      let shade = facing > 0.55 ? 0 : facing > 0 ? 1 : facing > -0.55 ? 2 : 3;
+      if (edge < 1 / k) shade = Math.min(4, shade + 2);
+      const i = (y * N + x) * 4;
+      [image.data[i], image.data[i + 1], image.data[i + 2]] = shades[shade];
+      image.data[i + 3] = 230;
+    }
+    ctx.putImageData(image, 0, 0);
+  </script>
+</body>
+</html>

@@ -3,19 +3,165 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>RustLauncherMC: one launcher for Minecraft rewritten in Rust</title>
-  <meta name="description" content="A free, fan-made launcher for Windows and Linux that installs, updates and starts Horizon (Java Edition in Rust) and Cinnabar (Bedrock Edition in Rust), with a layout like the official launcher.">
+  <title>RustLauncherMC: one launcher for Minecraft's Rust editions</title>
+  <meta name="description" content="Free, fan-made Minecraft launcher for Windows and Linux. Install, update and play Horizon (Java) and Cinnabar (Bedrock), the Rust editions, in one window.">
+  <link rel="canonical" href="https://rustlaunchermc.github.io/Launcher/">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="application-name" content="RustLauncherMC">
+  <meta name="author" content="RustLauncherMC contributors">
   <meta name="theme-color" content="#131416">
-  <meta property="og:title" content="RustLauncherMC">
-  <meta property="og:description" content="Every Rust edition of Minecraft, one launcher. Horizon and Cinnabar, on Windows and Linux.">
-  <meta property="og:image" content="img/logo-256.png">
-  <link rel="icon" href="favicon.ico" sizes="any">
+  <meta name="color-scheme" content="dark">
+
+  <!-- Social previews (Open Graph and Twitter / X). The image is made by tools/og-image. -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="RustLauncherMC">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:url" content="https://rustlaunchermc.github.io/Launcher/">
+  <meta property="og:title" content="RustLauncherMC: every Rust edition, one launcher">
+  <meta property="og:description" content="Free, fan-made Minecraft launcher for Windows and Linux. Install, update and play Horizon (Java) and Cinnabar (Bedrock), the Rust editions, in one window.">
+  <meta property="og:image" content="https://rustlaunchermc.github.io/Launcher/og.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="RustLauncherMC: Every Rust edition. One launcher. Java with Horizon, Bedrock with Cinnabar, on Windows and Linux.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="RustLauncherMC: every Rust edition, one launcher">
+  <meta name="twitter:description" content="Free, fan-made Minecraft launcher for Windows and Linux. Install, update and play Horizon (Java) and Cinnabar (Bedrock), the Rust editions, in one window.">
+  <meta name="twitter:image" content="https://rustlaunchermc.github.io/Launcher/og.png">
+  <meta name="twitter:image:alt" content="RustLauncherMC: Every Rust edition. One launcher.">
+
+  <link rel="icon" href="favicon.ico" sizes="48x48">
   <link rel="icon" href="img/logo.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
-  <link rel="preload" href="fonts/BricolageGrotesque.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="preload" href="fonts/Geist.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="sitemap" type="application/xml" href="sitemap.xml">
+
+  <link rel="preload" href="fonts/BricolageGrotesque.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Geist.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preconnect" href="https://api.github.com" crossorigin>
   <link rel="stylesheet" href="styles.css">
   <script src="main.js" defer></script>
+
+  <!-- Structured data for search engines. The FAQ entries match the FAQ section word for word. -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://rustlaunchermc.github.io/Launcher/#website",
+      "url": "https://rustlaunchermc.github.io/Launcher/",
+      "name": "RustLauncherMC",
+      "inLanguage": "en",
+      "description": "Free, fan-made Minecraft launcher for Windows and Linux. Install, update and play Horizon (Java) and Cinnabar (Bedrock), the Rust editions, in one window.",
+      "publisher": {
+        "@id": "https://rustlaunchermc.github.io/Launcher/#org"
+      }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://rustlaunchermc.github.io/Launcher/#org",
+      "name": "RustLauncherMC",
+      "url": "https://rustlaunchermc.github.io/Launcher/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://rustlaunchermc.github.io/Launcher/img/icon-512.png",
+        "width": 512,
+        "height": 512
+      },
+      "sameAs": [
+        "https://github.com/RustLauncherMC",
+        "https://github.com/RustLauncherMC/Launcher"
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://rustlaunchermc.github.io/Launcher/#app",
+      "name": "RustLauncherMC",
+      "url": "https://rustlaunchermc.github.io/Launcher/",
+      "description": "Free, fan-made Minecraft launcher for Windows and Linux. Install, update and play Horizon (Java) and Cinnabar (Bedrock), the Rust editions, in one window.",
+      "applicationCategory": "GameApplication",
+      "applicationSubCategory": "Game launcher",
+      "operatingSystem": "Windows 10, Windows 11, Linux",
+      "image": "https://rustlaunchermc.github.io/Launcher/og.png",
+      "downloadUrl": "https://github.com/RustLauncherMC/Launcher/releases",
+      "installUrl": "https://rustlaunchermc.github.io/Launcher/#download",
+      "license": "https://opensource.org/licenses/MIT",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "Installs and starts Horizon (Minecraft: Java Edition rewritten in Rust)",
+        "Installs and starts Cinnabar (a Minecraft: Bedrock Edition client in Rust)",
+        "Microsoft sign-in with tokens in the system's password storage",
+        "Several installations per edition",
+        "Join a server at start",
+        "Signed, self-updating releases"
+      ],
+      "publisher": {
+        "@id": "https://rustlaunchermc.github.io/Launcher/#org"
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://rustlaunchermc.github.io/Launcher/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is this an official Minecraft launcher?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. RustLauncherMC is a fan project. It isn't affiliated with Mojang or Microsoft, or with the Horizon or Cinnabar projects. It contains no Minecraft code, assets or data."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need to own Minecraft?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "For Java Edition, yes: Horizon is prepared from your own copy of Minecraft: Java Edition 26.3, and the launcher only starts it for a Microsoft account that owns the game. For Bedrock Edition, Cinnabar asks you to accept the Minecraft EULA and signs you in with your Microsoft account."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why does Java sign-in say the app isn't approved?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Minecraft only lets apps that Mojang has approved sign players in. RustLauncherMC's sign-in app is waiting for that approval. Until then, Bedrock works as normal."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is there a macOS version?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Not for now. The launcher is made for Windows and Linux."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can servers ban me?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Cinnabar's own README warns that its movement and combat may not match the official client yet, so some servers' anticheats may flag it. Play on servers at your own risk."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does it cost anything?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. RustLauncherMC is free and stays noncommercial, also because Cinnabar's licence (PolyForm Noncommercial) doesn't allow commercial use."
+          }
+        }
+      ]
+    }
+  ]
+}
+  </script>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>

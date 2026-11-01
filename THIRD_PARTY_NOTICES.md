@@ -6,8 +6,8 @@ RustLauncherMC is MIT-licensed (see [LICENSE](LICENSE)). It includes or builds o
 | --- | --- | --- |
 | [GPUI Fast](https://github.com/longbridge/gpui-fast) (Zed's GPUI) | User interface | Apache-2.0 |
 | [Noto Sans](https://github.com/notofonts/latin-greek-cyrillic) | Bundled font (`assets/fonts/`) | SIL Open Font License 1.1 ([`assets/fonts/OFL.txt`](assets/fonts/OFL.txt)) |
-| [Bricolage Grotesque](https://github.com/ateliertriay/bricolage) | Website font (`website/fonts/`) | SIL Open Font License 1.1 ([`OFL-BricolageGrotesque.txt`](website/fonts/OFL-BricolageGrotesque.txt)) |
-| [Geist](https://github.com/vercel/geist-font) | Website font (`website/fonts/`) | SIL Open Font License 1.1 ([`OFL-Geist.txt`](website/fonts/OFL-Geist.txt)) |
+| [Bricolage Grotesque](https://github.com/ateliertriay/bricolage) | Website font (`website/fonts/`, WOFF2, Latin subset) | SIL Open Font License 1.1 ([`OFL-BricolageGrotesque.txt`](website/fonts/OFL-BricolageGrotesque.txt)) |
+| [Geist](https://github.com/vercel/geist-font) | Website font (`website/fonts/`, WOFF2, Latin subset) | SIL Open Font License 1.1 ([`OFL-Geist.txt`](website/fonts/OFL-Geist.txt)) |
 
 Other Rust dependencies are listed in `Cargo.lock`, each under its own license.
 
