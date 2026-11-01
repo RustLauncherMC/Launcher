@@ -13,4 +13,14 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sha2 = "0.10"
 tempfile = "3"
-ureq = { version = "2", features = ["json", "tls"], default-features = false }
+# `native-certs`: trust the system's certificates, so the launcher also works behind a proxy that
+# the system trusts.
+ureq = { version = "2", features = ["json", "tls", "native-certs"], default-features = false }
+
+# Microsoft sign-in secrets in the system's password storage (accounts.rs).
+[target.'cfg(windows)'.dependencies]
+keyring = { version = "3", features = ["windows-native"] }
+[target.'cfg(target_os = "linux")'.dependencies]
+# The Secret Service over D-Bus (GNOME Keyring, KWallet). `vendored` builds libdbus, so no
+# system development package is needed.
+keyring = { version = "3", features = ["sync-secret-service", "crypto-rust", "vendored"] }

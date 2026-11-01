@@ -32,6 +32,22 @@ pub fn button(id: impl Into<ElementId>, text: impl Into<SharedString>) -> Statef
         .child(text.into())
 }
 
+/// The main action of a screen, in the Play button's green.
+pub fn primary_button(id: impl Into<ElementId>, text: impl Into<SharedString>) -> Stateful<Div> {
+    div()
+        .id(id.into())
+        .px(px(16.))
+        .py(px(8.))
+        .rounded(px(4.))
+        .bg(theme::play())
+        .text_size(px(14.))
+        .font_weight(FontWeight::SEMIBOLD)
+        .text_color(theme::text())
+        .cursor_pointer()
+        .hover(|s| s.bg(theme::play_hover()))
+        .child(text.into())
+}
+
 /// A button that does nothing, shown in place of one that cannot be used right now.
 pub fn disabled(text: impl Into<SharedString>) -> Div {
     div()
