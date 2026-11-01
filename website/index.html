@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RustLauncherMC: one launcher for Minecraft rewritten in Rust</title>
+  <meta name="description" content="A free, fan-made launcher for Windows and Linux that installs, updates and starts Horizon (Java Edition in Rust) and Cinnabar (Bedrock Edition in Rust), with a layout like the official launcher.">
+  <meta name="theme-color" content="#131416">
+  <meta property="og:title" content="RustLauncherMC">
+  <meta property="og:description" content="Every Rust edition of Minecraft, one launcher. Horizon and Cinnabar, on Windows and Linux.">
+  <meta property="og:image" content="img/logo-256.png">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="preload" href="fonts/BricolageGrotesque.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="fonts/Geist.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+  <script src="main.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <!-- The isometric block from the logo: grass top, Java (purple) left, Bedrock (red) right. -->
+  <svg width="0" height="0" class="defs" aria-hidden="true">
+    <defs>
+      <symbol id="block" viewBox="0 0 112 130">
+        <polygon points="0,32 56,64 56,130 0,98" fill="var(--l, #3B2F7E)"/>
+        <polygon points="56,64 112,32 112,98 56,130" fill="var(--r, #B22222)"/>
+        <polygon points="56,0 112,32 56,64 0,32" fill="#6DB33F"/>
+        <polygon points="0,32 56,64 56,74 42,66 42,72 28,64 28,58 14,50 14,56 0,48" fill="#5D9C3F"/>
+        <polygon points="56,64 112,32 112,44 98,52 98,46 84,54 84,62 70,70 70,66 56,74" fill="#4E8A33"/>
+        <polygon points="56,0 112,32 104,36.6 56,9" fill="#fff" fill-opacity=".18"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <header class="nav" id="top">
+    <div class="nav-pill">
+      <a class="brand" href="#top" aria-label="RustLauncherMC home">
+        <img src="img/logo.svg" alt="" width="30" height="30">
+        <span>RustLauncher<em>MC</em></span>
+      </a>
+      <nav class="nav-links" id="nav-links" aria-label="Main">
+        <a href="#editions" data-spy>Editions</a>
+        <a href="#features" data-spy>Features</a>
+        <a href="#how" data-spy>How it works</a>
+        <a href="#faq" data-spy>FAQ</a>
+        <a href="https://github.com/RustLauncherMC/Launcher/releases">Releases <span class="pill" data-version-pill hidden></span></a>
+      </nav>
+      <div class="nav-end">
+        <a class="nav-icon" href="https://github.com/RustLauncherMC/Launcher" aria-label="RustLauncherMC on GitHub">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        </a>
+        <a class="btn btn-rust btn-small" href="#download">Download</a>
+        <button class="nav-toggle" type="button" aria-controls="nav-links" aria-expanded="false" aria-label="Menu">
+          <span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="hero-grid-bg" aria-hidden="true"></div>
+      <svg class="float f1" aria-hidden="true"><use href="#block"/></svg>
+      <svg class="float f2 java" aria-hidden="true"><use href="#block"/></svg>
+      <svg class="float f3 bedrock" aria-hidden="true"><use href="#block"/></svg>
+      <svg class="float f4" aria-hidden="true"><use href="#block"/></svg>
+
+      <div class="wrap hero-text">
+        <a class="chip" href="https://github.com/RustLauncherMC/Launcher/releases">
+          <span class="chip-tag">New</span>
+          <span data-chip-text>Installations, Join a server and self-update</span>
+          <span aria-hidden="true">→</span>
+        </a>
+        <h1>Every Rust edition.<br><span class="rust-text">One launcher.</span></h1>
+        <p class="lead">
+          Install, update and play <a href="https://github.com/horizon-rust/horizon"><b class="t-java">Horizon</b></a>
+          (Java Edition rewritten in Rust) and <a href="https://github.com/cinnabar-mc/cinnabar"><b class="t-bedrock">Cinnabar</b></a>
+          (Bedrock Edition in Rust) from one window, laid out like the official launcher.
+        </p>
+        <div class="cta">
+          <a class="btn btn-rust btn-big" id="download-main" href="#download">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3a1 1 0 011 1v9.59l3.3-3.3a1 1 0 111.4 1.42l-5 5a1 1 0 01-1.4 0l-5-5a1 1 0 111.4-1.42l3.3 3.3V4a1 1 0 011-1zM5 19a1 1 0 100 2h14a1 1 0 100-2H5z"/></svg>
+            <span data-download-label>Download the launcher</span>
+          </a>
+          <a class="btn btn-ghost btn-big" href="https://github.com/RustLauncherMC/Launcher">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            <span>View on GitHub</span>
+          </a>
+        </div>
+        <p class="meta">
+          <span class="os os-win">Windows</span><span class="os os-linux">Linux</span><span class="sep">·</span><span data-release-line>Free and open source</span>
+        </p>
+      </div>
+
+      <!-- The product shot: a pixel cog rising behind a working model of the launcher. -->
+      <div class="stage">
+        <canvas class="cog" id="cog" aria-hidden="true"></canvas>
+        <figure class="preview" aria-label="The launcher's window">
+          <div class="win">
+            <div class="win-bar"><i></i><i></i><i></i><span>RustLauncherMC</span></div>
+            <div class="win-body">
+              <aside class="win-side">
+                <div class="win-brand"><img src="img/logo.svg" alt="" width="22" height="22"><span>RustLauncherMC<small>Fan-made launcher</small></span></div>
+                <button class="win-ed" type="button" data-edition="java">
+                  <span class="cube cube-java"></span><span><b>Java Edition</b><small>Horizon</small></span>
+                </button>
+                <button class="win-ed active" type="button" data-edition="bedrock">
+                  <span class="cube cube-bedrock"></span><span><b>Bedrock Edition</b><small>Cinnabar</small></span>
+                </button>
+                <div class="win-gear">⚙ Settings</div>
+              </aside>
+              <div class="win-main">
+                <div class="win-head">
+                  <div><b data-win-title>BEDROCK EDITION</b><small data-win-sub>Cinnabar</small></div>
+                  <nav><span class="on">PLAY</span><span>INSTALLATIONS</span><span>PATCH NOTES</span></nav>
+                </div>
+                <div class="win-art" data-win-art>
+                  <img src="img/logo.svg" alt="" width="84" height="84">
+                  <b data-win-name>Cinnabar</b>
+                  <small data-win-tag>A Bedrock Edition client written in Rust</small>
+                </div>
+                <div class="win-foot">
+                  <div class="win-left"><span class="win-inst">Default ▾</span><small data-win-version>Cinnabar Beta</small></div>
+                  <button class="win-play" type="button" data-win-play>PLAY</button>
+                  <small class="win-status" data-win-status>Latest Beta</small>
+                </div>
+              </div>
+            </div>
+          </div>
+          <figcaption>Try it: switch editions and press Play.</figcaption>
+        </figure>
+      </div>
+
+      <div class="wrap trust">
+        <span><b>Signed</b> releases</span>
+        <span><b>SHA-256</b> checked downloads</span>
+        <span><b>MIT</b> licensed</span>
+        <span><b>No</b> telemetry</span>
+      </div>
+    </section>
+
+    <section class="section" id="editions">
+      <div class="wrap">
+        <p class="eyebrow reveal">What it is</p>
+        <h2 class="reveal">Two editions.<br>One window.</h2>
+        <p class="section-lead reveal">
+          Horizon and Cinnabar each ship their own launcher. RustLauncherMC puts them side by side,
+          the way the official launcher puts Java and Bedrock side by side, and does the work each
+          game expects from its launcher.
+        </p>
+        <div class="editions">
+          <article class="edition edition-java reveal">
+            <div class="edition-head">
+              <svg class="edition-block java" aria-hidden="true"><use href="#block"/></svg>
+              <div><h3>Java Edition</h3><p>through <a href="https://github.com/horizon-rust/horizon">Horizon</a></p></div>
+            </div>
+            <ul class="ticks">
+              <li>Signs you in with Microsoft and checks that you own Java Edition.</li>
+              <li>Installs the newest Horizon nightly, checked against Horizon's signed checksums.</li>
+              <li>Prepares Horizon's game files from your own copy of Minecraft 26.3, getting Java 25 if you need it.</li>
+              <li>Starts the game with your account, so you can join online-mode servers.</li>
+            </ul>
+          </article>
+          <article class="edition edition-bedrock reveal">
+            <div class="edition-head">
+              <svg class="edition-block bedrock" aria-hidden="true"><use href="#block"/></svg>
+              <div><h3>Bedrock Edition</h3><p>through <a href="https://github.com/cinnabar-mc/cinnabar">Cinnabar</a></p></div>
+            </div>
+            <ul class="ticks">
+              <li>Installs Cinnabar's official Beta or Nightly release, checked against its SHA-256 sums.</li>
+              <li>Finds a copy you already installed with Cinnabar's own installer.</li>
+              <li>Starts the game, which handles its own sign-in, account switching and the Minecraft EULA.</li>
+              <li>Lets Cinnabar keep itself up to date, as it's designed to.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="wrap">
+        <p class="eyebrow reveal">Features</p>
+        <h2 class="reveal">Feels like the launcher<br>you already know.</h2>
+        <div class="features">
+          <div class="feature reveal">
+            <span class="ficon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM9 5v14" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>
+            <h3>A familiar layout</h3>
+            <p>Editions on the left, Play, Installations and Patch notes along the top, and one big green Play button.</p>
+          </div>
+          <div class="feature reveal">
+            <span class="ficon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h10v10H4zM10 3h10v10" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>
+            <h3>Installations</h3>
+            <p>Several per edition, each with its own worlds, settings and logs. Pick one beside Play.</p>
+          </div>
+          <div class="feature reveal">
+            <span class="ficon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h13M12 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>
+            <h3>Join a server</h3>
+            <p>Type an address on the Play tab, and the game joins it as soon as it starts.</p>
+          </div>
+          <div class="feature reveal">
+            <span class="ficon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 11h12v9H6zM9 11V8a3 3 0 016 0v3" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>
+            <h3>Safe sign-in</h3>
+            <p>Microsoft sign-in tokens live only in your system's password storage, never in a plain file.</p>
+          </div>
+          <div class="feature reveal">
+            <span class="ficon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM8.5 12l2.5 2.5 4.5-5" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>
+            <h3>Verified downloads</h3>
+            <p>Every game build, Minecraft file and launcher update is checked against its checksum or signature before it's used.</p>
+          </div>
+          <div class="feature reveal">
+            <span class="ficon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 11-2.3-5.6M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>
+            <h3>Updates itself</h3>
+            <p>New launcher versions install with one click, and only when they're signed with the project's key.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="how">
+      <div class="wrap">
+        <p class="eyebrow reveal">How it works</p>
+        <h2 class="reveal">From download<br>to <span class="rust-text">playing</span>.</h2>
+        <ol class="steps">
+          <li class="step reveal">
+            <span class="num">1</span>
+            <h3>Install the launcher</h3>
+            <p>The Windows installer needs no administrator approval. On Linux, use the AppImage, the .deb, or the plain binary.</p>
+          </li>
+          <li class="step reveal">
+            <span class="num">2</span>
+            <h3>Pick an edition</h3>
+            <p>For Java, sign in with a Microsoft account that owns Java Edition. For Bedrock, Cinnabar signs you in inside the game.</p>
+          </li>
+          <li class="step reveal">
+            <span class="num">3</span>
+            <h3>Press Play</h3>
+            <p>The first start downloads the game and gets its files ready. After that, Play starts it straight away.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section download" id="download">
+      <div class="wrap">
+        <p class="eyebrow reveal">Download</p>
+        <h2 class="reveal">Get RustLauncher<span class="rust-text">MC</span>.</h2>
+        <p class="section-lead reveal" data-download-note>
+          Free for Windows and Linux. Pick the file for your system.
+        </p>
+        <div class="downloads">
+          <a class="dl reveal" data-asset="RustLauncherMC-Setup-x64.exe" data-os="windows" href="https://github.com/RustLauncherMC/Launcher/releases">
+            <b>Windows installer</b><small>Windows 10 and 11, 64-bit · Setup.exe · updates itself</small>
+          </a>
+          <a class="dl reveal" data-asset="rustlauncher-windows-x64.zip" href="https://github.com/RustLauncherMC/Launcher/releases">
+            <b>Windows, portable</b><small>.zip · no install · updates itself</small>
+          </a>
+          <a class="dl reveal" data-asset="RustLauncherMC-x86_64.AppImage" data-os="linux" href="https://github.com/RustLauncherMC/Launcher/releases">
+            <b>Linux AppImage</b><small>Most distributions, glibc 2.35+ · updates itself</small>
+          </a>
+          <a class="dl reveal" data-asset="rustlaunchermc_VERSION_amd64.deb" href="https://github.com/RustLauncherMC/Launcher/releases">
+            <b>Debian and Ubuntu</b><small>.deb · Ubuntu 22.04 and newer</small>
+          </a>
+          <a class="dl reveal" data-asset="rustlauncher-linux-x86_64.tar.gz" href="https://github.com/RustLauncherMC/Launcher/releases">
+            <b>Linux, plain binary</b><small>.tar.gz · updates itself</small>
+          </a>
+          <a class="dl reveal" href="https://github.com/RustLauncherMC/Launcher#building">
+            <b>Build from source</b><small>Rust and Cargo · <code>cargo run --release</code></small>
+          </a>
+        </div>
+        <p class="fine reveal">
+          Every release has a <code>SHA256SUMS</code> file and its signature. Windows may show a SmartScreen
+          warning, because the launcher isn't code-signed yet. macOS isn't supported.
+        </p>
+      </div>
+    </section>
+
+    <section class="section community" id="community">
+      <canvas class="embers" id="embers" aria-hidden="true"></canvas>
+      <div class="wrap">
+        <p class="eyebrow reveal">Community</p>
+        <h2 class="reveal">Built in the open.</h2>
+        <p class="section-lead reveal">The launcher, the games and their code are all on GitHub. Questions, bug reports and pull requests are welcome.</p>
+        <div class="cards">
+          <a class="card card-rust reveal" href="https://github.com/RustLauncherMC/Launcher">
+            <b>Source</b><small>RustLauncherMC's code, under the MIT licence.</small>
+          </a>
+          <a class="card reveal" href="https://github.com/RustLauncherMC/Launcher/issues">
+            <b>Issues</b><small>Report a bug or ask for a feature.</small>
+          </a>
+          <a class="card card-java reveal" href="https://github.com/horizon-rust/horizon">
+            <b>Horizon</b><small>Java Edition rewritten in Rust.</small>
+          </a>
+          <a class="card card-bedrock reveal" href="https://github.com/cinnabar-mc/cinnabar">
+            <b>Cinnabar</b><small>A Bedrock Edition client in Rust.</small>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="faq">
+      <div class="wrap faq-wrap">
+        <div>
+          <p class="eyebrow reveal">FAQ</p>
+          <h2 class="reveal">Questions.</h2>
+        </div>
+        <div class="faq">
+          <details class="reveal">
+            <summary>Is this an official Minecraft launcher?</summary>
+            <p>No. RustLauncherMC is a fan project. It isn't affiliated with Mojang or Microsoft, or with the Horizon or Cinnabar projects. It contains no Minecraft code, assets or data.</p>
+          </details>
+          <details class="reveal">
+            <summary>Do I need to own Minecraft?</summary>
+            <p>For Java Edition, yes: Horizon is prepared from your own copy of Minecraft: Java Edition 26.3, and the launcher only starts it for a Microsoft account that owns the game. For Bedrock Edition, Cinnabar asks you to accept the Minecraft EULA and signs you in with your Microsoft account.</p>
+          </details>
+          <details class="reveal">
+            <summary>Why does Java sign-in say the app isn't approved?</summary>
+            <p>Minecraft only lets apps that Mojang has approved sign players in. RustLauncherMC's sign-in app is waiting for that approval. Until then, Bedrock works as normal.</p>
+          </details>
+          <details class="reveal">
+            <summary>Is there a macOS version?</summary>
+            <p>Not for now. The launcher is made for Windows and Linux.</p>
+          </details>
+          <details class="reveal">
+            <summary>Can servers ban me?</summary>
+            <p>Cinnabar's own README warns that its movement and combat may not match the official client yet, so some servers' anticheats may flag it. Play on servers at your own risk.</p>
+          </details>
+          <details class="reveal">
+            <summary>Does it cost anything?</summary>
+            <p>No. RustLauncherMC is free and stays noncommercial, also because Cinnabar's licence (PolyForm Noncommercial) doesn't allow commercial use.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="final">
+      <div class="wrap final-box reveal">
+        <svg class="final-block" aria-hidden="true"><use href="#block"/></svg>
+        <div>
+          <h2>Ready to play?</h2>
+          <p>Free for Windows and Linux.</p>
+        </div>
+        <a class="btn btn-rust btn-big" href="#download">Download</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div class="foot-top">
+        <a class="brand" href="#top"><img src="img/logo.svg" alt="" width="26" height="26"><span>RustLauncher<em>MC</em></span></a>
+        <p>Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.</p>
+      </div>
+      <div class="foot-cols">
+        <div>
+          <h4>Who makes it</h4>
+          <p>RustLauncherMC is a fan project by its <a href="https://github.com/RustLauncherMC/Launcher/graphs/contributors">contributors</a>. It downloads Horizon and Cinnabar from their official releases and doesn't bundle them. Minecraft is a trademark of Microsoft Corporation.</p>
+        </div>
+        <div>
+          <h4>Licences</h4>
+          <p>The launcher and this site are under the <a href="https://github.com/RustLauncherMC/Launcher/blob/main/LICENSE">MIT licence</a>. The fonts are Bricolage Grotesque and Geist, under the SIL Open Font License. Horizon is MIT, Cinnabar is PolyForm Noncommercial 1.0.0.</p>
+        </div>
+        <div>
+          <h4>Privacy</h4>
+          <p>This site sets no cookies and has no analytics or trackers. Its fonts are hosted here. To show the latest release, your browser asks <code>api.github.com</code> for it, and the download buttons lead to GitHub; <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">GitHub's privacy statement</a> covers those requests.</p>
+        </div>
+      </div>
+      <div class="foot-bottom">
+        <span>Made in the open, in Rust.</span>
+        <a href="https://github.com/RustLauncherMC/Launcher">RustLauncherMC/Launcher</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

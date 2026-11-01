@@ -9,6 +9,12 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-3B2F7E" alt="MIT license"></a>
 </p>
 
+<p align="center">
+  <a href="https://rustlaunchermc.github.io/Launcher/"><b>Website</b></a> ·
+  <a href="https://github.com/RustLauncherMC/Launcher/releases"><b>Download</b></a> ·
+  <a href="docs/releasing.md"><b>Releasing</b></a>
+</p>
+
 # RustLauncherMC
 
 **One launcher for both Rust editions of Minecraft.** RustLauncherMC installs, updates and launches
@@ -144,6 +150,11 @@ The workspace has two crates:
 `cargo test --workspace` runs the tests. The Microsoft sign-in uses RustLauncherMC's own Azure app;
 `RUSTLAUNCHERMC_MSA_CLIENT_ID` replaces its client ID at run time, for testing your own app. Set `RUSTLAUNCHERMC_HOME=/some/absolute/folder` to keep
 the launcher's settings and downloads in a separate folder while testing.
+
+## Website
+
+The project's website is in [`website/`](website): plain HTML, CSS and JavaScript, published to
+GitHub Pages by `.github/workflows/pages.yml`.
 
 ## Contributing
 
