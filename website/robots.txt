@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://rustlaunchermc.github.io/Launcher/sitemap.xml
