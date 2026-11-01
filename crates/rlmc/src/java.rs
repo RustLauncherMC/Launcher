@@ -24,6 +24,8 @@ pub struct Java {
     sign_in: Option<SignIn>,
     /// The outcome of the last sign-in or sign-out.
     message: Option<Result<String, String>>,
+    /// Player heads by UUID, once loaded; `None` while loading or when there is none.
+    heads: std::collections::HashMap<String, Option<Arc<gpui::Image>>>,
 }
 
 enum SignIn {
@@ -44,6 +46,7 @@ impl Default for Java {
             accounts: Accounts::load(),
             sign_in: None,
             message: None,
+            heads: Default::default(),
         }
     }
 }
@@ -117,6 +120,7 @@ impl Launcher {
             let _ = this.update(cx, |this, cx| match done {
                 Ok((account, accounts)) => {
                     this.java.accounts = accounts;
+                    this.load_heads(cx);
                     this.java.sign_in = None;
                     this.java.message = Some(Ok(format!("Signed in as {}", account.name)));
                     cx.notify();
@@ -125,6 +129,51 @@ impl Launcher {
             });
         })
         .detach();
+    }
+
+    /// Loads the heads of signed-in players that aren't loaded yet.
+    pub fn load_heads(&mut self, cx: &mut Context<Self>) {
+        for account in self.java.accounts.accounts.clone() {
+            if self.java.heads.contains_key(&account.uuid) {
+                continue;
+            }
+            self.java.heads.insert(account.uuid.clone(), None);
+            let agent = self.agent.clone();
+            let uuid = account.uuid.clone();
+            let task = cx
+                .background_executor()
+                .spawn(async move { rlmc_core::skins::head_png(&agent, &uuid) });
+            let uuid = account.uuid;
+            cx.spawn(async move |this, cx| {
+                let png = task.await;
+                let _ = this.update(cx, |this, cx| {
+                    match png {
+                        Ok(png) => {
+                            let image = gpui::Image::from_bytes(gpui::ImageFormat::Png, png);
+                            this.java.heads.insert(uuid, Some(Arc::new(image)));
+                        }
+                        Err(e) => eprintln!("RustLauncherMC: no head for {uuid}: {e:#}"),
+                    }
+                    cx.notify();
+                });
+            })
+            .detach();
+        }
+    }
+
+    /// A player's head, or a plain square until it has loaded.
+    fn head(&self, uuid: &str, size: f32) -> gpui::AnyElement {
+        match self.java.heads.get(uuid).cloned().flatten() {
+            Some(image) => gpui::img(image)
+                .size(px(size))
+                .rounded(px(3.))
+                .into_any_element(),
+            None => div()
+                .size(px(size))
+                .rounded(px(3.))
+                .bg(theme::panel_hover())
+                .into_any_element(),
+        }
     }
 
     fn sign_in_failed(&mut self, message: String, cx: &mut Context<Self>) {
@@ -302,8 +351,15 @@ impl Launcher {
                     .child(self.installation_picker(Edition::Java, cx)),
             )
             .child(match self.java.accounts.selected() {
-                Some(account) => label(account.name.clone(), 14., theme::text())
-                    .font_weight(FontWeight::SEMIBOLD),
+                Some(account) => div()
+                    .flex()
+                    .items_center()
+                    .gap(px(8.))
+                    .child(self.head(&account.uuid, 20.))
+                    .child(
+                        label(account.name.clone(), 14., theme::text())
+                            .font_weight(FontWeight::SEMIBOLD),
+                    ),
                 None => label("Not signed in", 14., theme::muted()),
             });
         let left = match self.java.accounts.selected() {
@@ -429,9 +485,16 @@ impl Launcher {
                     .rounded(px(4.))
                     .bg(theme::panel())
                     .child(
-                        label(account.name.clone(), 14., theme::text())
-                            .font_weight(FontWeight::SEMIBOLD)
-                            .flex_1(),
+                        div()
+                            .flex_1()
+                            .flex()
+                            .items_center()
+                            .gap(px(10.))
+                            .child(self.head(&account.uuid, 28.))
+                            .child(
+                                label(account.name.clone(), 14., theme::text())
+                                    .font_weight(FontWeight::SEMIBOLD),
+                            ),
                     )
                     .child(if is_selected {
                         label("Selected", 12., theme::muted()).into_any_element()

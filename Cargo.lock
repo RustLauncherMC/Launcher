@@ -4534,6 +4534,7 @@ dependencies = [
  "base64",
  "dirs",
  "flate2",
+ "image",
  "keyring",
  "ring",
  "serde",

@@ -63,6 +63,7 @@ impl Launcher {
         launcher.fetch_horizon_release(cx);
         rlmc_core::update::cleanup();
         launcher.check_for_updates(cx);
+        launcher.load_heads(cx);
         launcher
     }
 

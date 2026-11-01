@@ -24,6 +24,7 @@ pub mod paths;
 pub mod servers;
 pub mod settings;
 pub mod signing;
+pub mod skins;
 pub mod update;
 
 pub use ureq;

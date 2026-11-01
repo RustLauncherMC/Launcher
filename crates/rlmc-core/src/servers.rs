@@ -36,7 +36,9 @@ impl Address {
             }
         };
         let plain = host.trim_start_matches('[').trim_end_matches(']');
+        // A host starting with `-` could be read as an option by the game.
         if plain.is_empty()
+            || plain.starts_with('-')
             || host.len() > 255
             || !plain
                 .bytes()
@@ -95,6 +97,8 @@ mod tests {
             "host:x",
             "::1",
             "--fullscreen;rm",
+            "--fullscreen",
+            "-host:25565",
             "[::1",
         ] {
             assert!(Address::parse(bad).is_err(), "{bad:?} should be refused");

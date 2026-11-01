@@ -59,21 +59,28 @@ way the official launcher puts Java and Bedrock side by side.
     against its SHA-1. Java 25 is downloaded from Mojang if the system has none.
   - Starts the game through Horizon's Launch API, handing over the account on standard input.
   - Shows the crash report if the game crashes.
-- **Settings:** accounts, release channel, folders, and license information.
+- **Installations:** several per edition, like the official launcher's Installations tab, each
+  with its own worlds and settings. Pick one beside Play. Java installations can open
+  fullscreen.
+- **Join a server:** type an address on the Play tab, and the game joins it as it starts.
+- **Player heads:** each Java account shows its player's head.
+- **Updates:** the launcher checks its own releases, verifies their signature, and updates
+  itself.
+- **Settings:** accounts, release channel, updates, folders, and license information.
 
-## Planned features
+## Download
 
-- **Familiar layout:** an edition sidebar (Java: Horizon, Bedrock: Cinnabar), a large Play button
-  with a version picker, and Play, Installations and Patch notes tabs for each edition.
-- **Sign-in:** Microsoft sign-in for Horizon, in the launcher. Cinnabar keeps its own sign-in and
-  account switcher inside the game.
-- **Install and update:** downloads each game from its project's GitHub releases and checks
-  them against the published checksums. Horizon ships Nightly builds, and Cinnabar ships Beta and
-  Nightly. Cinnabar keeps updating itself, and the launcher updates itself too.
-- **Installations:** several profiles per edition, each with its own version, game folder and
-  launch options.
-- **Patch notes:** release notes from Horizon and Cinnabar, shown in the launcher.
-- **Native and light:** written in Rust, a single small binary for each platform.
+From the [releases page](https://github.com/RustLauncherMC/Launcher/releases), once the first
+release is out:
+
+| System | File |
+| --- | --- |
+| Windows 10 and 11 (x64) | `RustLauncherMC-Setup-x64.exe` (installer, no administrator needed), or the portable `rustlauncher-windows-x64.zip` |
+| Linux (x86-64) | `RustLauncherMC-x86_64.AppImage`, `rustlaunchermc_<version>_amd64.deb` for Debian and Ubuntu, or `rustlauncher-linux-x86_64.tar.gz` |
+
+The installer, the AppImage and the zip and tar.gz builds update themselves. The `.deb` is
+updated by installing the newer `.deb`. Windows may show a SmartScreen warning, because the
+launcher is not code-signed yet.
 
 ## What you need
 
@@ -90,8 +97,8 @@ installed, signed in and launched, see [docs/upstream-research.md](docs/upstream
 
 | Platform | Support |
 | --- | --- |
-| Windows 10 and 11 (x64) | In development |
-| Linux (x86-64) | In development |
+| Windows 10 and 11 (x64) | Supported (installer and portable zip) |
+| Linux (x86-64), glibc 2.35+ | Supported (AppImage, .deb, tar.gz) |
 | macOS | Not planned |
 
 ## Roadmap
@@ -102,9 +109,11 @@ installed, signed in and launched, see [docs/upstream-research.md](docs/upstream
 - [x] Microsoft account sign-in (device code)
 - [ ] Mojang's approval of the sign-in app
 - [x] Download, verify, prepare and launch Horizon releases
-- [ ] Installations (profiles) per edition
-- [ ] Launcher self-update
-- [ ] Windows installer and Linux packages (AppImage, .deb)
+- [x] Installations (profiles) per edition, and Join a server
+- [x] Launcher self-update, with signed releases
+- [x] Windows installer and Linux packages (AppImage, .deb)
+- [ ] First release
+- [ ] Translations
 
 ## Building
 
@@ -130,6 +139,7 @@ The workspace has two crates:
 | --- | --- |
 | [`crates/rlmc-core`](crates/rlmc-core) | The backend, with no UI: GitHub releases, verified downloads, settings, Microsoft sign-in and accounts, Horizon's install, preparation and launch, and Cinnabar's install, version and launch |
 | [`crates/rlmc`](crates/rlmc) | The GPUI app (`rustlauncher` binary) |
+| [`crates/rlmc-release`](crates/rlmc-release) | Signs releases; see [docs/releasing.md](docs/releasing.md) |
 
 `cargo test --workspace` runs the tests. The Microsoft sign-in uses RustLauncherMC's own Azure app;
 `RUSTLAUNCHERMC_MSA_CLIENT_ID` replaces its client ID at run time, for testing your own app. Set `RUSTLAUNCHERMC_HOME=/some/absolute/folder` to keep
