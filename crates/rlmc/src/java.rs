@@ -168,7 +168,7 @@ impl Launcher {
         cx.notify();
     }
 
-    pub fn java_page(&mut self, cx: &mut Context<Self>) -> Div {
+    pub fn java_page(&mut self, window: &gpui::Window, cx: &mut Context<Self>) -> Div {
         div()
             .flex_1()
             .flex()
@@ -179,14 +179,14 @@ impl Launcher {
                     .flex_1()
                     .flex()
                     .flex_col()
-                    .child(self.java_hero(cx))
+                    .child(self.java_hero(window, cx))
                     .child(self.java_bar(cx)),
-                Tab::Installations => self.horizon_installations(cx),
+                Tab::Installations => self.horizon_installations(window, cx),
                 Tab::PatchNotes => self.horizon_notes(cx),
             })
     }
 
-    fn java_hero(&self, cx: &mut Context<Self>) -> Div {
+    fn java_hero(&self, window: &gpui::Window, cx: &mut Context<Self>) -> Div {
         let hero = hero(theme::java(), self.logo.clone());
         match &self.java.sign_in {
             Some(SignIn::Starting) => {
@@ -261,6 +261,10 @@ impl Launcher {
                         .max_w(px(560.))
                         .text_center(),
                     )
+                    .when(
+                        self.horizon.job.is_none() && !self.horizon.running,
+                        |hero| hero.child(self.join_server(Edition::Java, window, cx)),
+                    )
                     .child(
                         button("java-horizon", "About Horizon")
                             .on_click(|_, _, cx| cx.open_url(HORIZON_URL)),
@@ -287,15 +291,23 @@ impl Launcher {
     }
 
     fn java_bar(&self, cx: &mut Context<Self>) -> Div {
-        let left = div().w(px(260.)).flex().flex_col().gap(px(4.)).child(
-            match self.java.accounts.selected() {
+        let left = div()
+            .w(px(260.))
+            .flex()
+            .flex_col()
+            .gap(px(4.))
+            .child(
+                div()
+                    .flex()
+                    .child(self.installation_picker(Edition::Java, cx)),
+            )
+            .child(match self.java.accounts.selected() {
                 Some(account) => label(account.name.clone(), 14., theme::text())
                     .font_weight(FontWeight::SEMIBOLD),
                 None => label("Not signed in", 14., theme::muted()),
-            },
-        );
+            });
         let left = match self.java.accounts.selected() {
-            Some(_) => left.child(label("Microsoft account", 12., theme::faint())),
+            Some(_) => left,
             None if self.java.sign_in.is_none() => left.child(
                 div().flex().child(
                     div()
@@ -386,7 +398,7 @@ impl Launcher {
             }
         };
         div()
-            .h(px(96.))
+            .h(px(112.))
             .px(px(32.))
             .flex()
             .items_center()

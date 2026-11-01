@@ -7,6 +7,7 @@
 
 mod bedrock;
 mod horizon;
+mod installations;
 mod java;
 mod launcher;
 mod theme;

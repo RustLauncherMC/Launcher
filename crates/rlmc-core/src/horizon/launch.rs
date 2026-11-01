@@ -45,12 +45,21 @@ fn parse_options(reply: &[u8]) -> Result<Vec<String>> {
         .collect())
 }
 
+/// How to start the game, besides the account.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct StartOptions {
+    pub fullscreen: bool,
+    /// `host` or `host:port`: join this server at start.
+    pub server: Option<String>,
+}
+
 /// The arguments for a start, from the options the build takes.
 fn arguments(
     options: &[String],
     resources: &Path,
     home: &Path,
     online: bool,
+    start: &StartOptions,
 ) -> Result<Vec<String>> {
     let has = |name: &str| options.iter().any(|o| o == name);
     if !has("--resources") {
@@ -68,6 +77,16 @@ fn arguments(
             bail!("this Horizon build can't receive a sign-in safely (no --session-stdin)");
         }
         args.push("--session-stdin".into());
+    }
+    if start.fullscreen && has("--fullscreen") {
+        args.push("--fullscreen".into());
+    }
+    if let Some(server) = &start.server {
+        if !has("--quickPlayMultiplayer") {
+            bail!("this Horizon build can't join a server at start");
+        }
+        args.push("--quickPlayMultiplayer".into());
+        args.push(server.clone());
     }
     Ok(args)
 }
@@ -96,9 +115,20 @@ fn crash_report(lines: &[String]) -> Option<String> {
 
 /// Starts the game. With `session`, the player can join online-mode servers; without, the game
 /// runs offline.
-pub fn start(build: &Build, session: Option<&Session>, home: &Path) -> Result<Game> {
+pub fn start(
+    build: &Build,
+    session: Option<&Session>,
+    home: &Path,
+    start: &StartOptions,
+) -> Result<Game> {
     let options = options(build)?;
-    let args = arguments(&options, &build.prepared_dir(), home, session.is_some())?;
+    let args = arguments(
+        &options,
+        &build.prepared_dir(),
+        home,
+        session.is_some(),
+        start,
+    )?;
     std::fs::create_dir_all(home)?;
     let mut command = Command::new(build.client());
     quiet(&mut command);
@@ -163,7 +193,14 @@ mod tests {
     #[test]
     fn passes_only_options_the_build_takes() {
         let options = parse_options(REPLY.as_bytes()).unwrap();
-        let args = arguments(&options, Path::new("/p"), Path::new("/h"), true).unwrap();
+        let args = arguments(
+            &options,
+            Path::new("/p"),
+            Path::new("/h"),
+            true,
+            &StartOptions::default(),
+        )
+        .unwrap();
         assert_eq!(
             args,
             [
@@ -176,16 +213,61 @@ mod tests {
                 "--session-stdin"
             ]
         );
-        let offline = arguments(&options, Path::new("/p"), Path::new("/h"), false).unwrap();
+        let offline = arguments(
+            &options,
+            Path::new("/p"),
+            Path::new("/h"),
+            false,
+            &StartOptions::default(),
+        )
+        .unwrap();
         assert!(!offline.contains(&"--session-stdin".to_string()));
 
         let old = vec!["--resources".to_string()];
         assert_eq!(
-            arguments(&old, Path::new("/p"), Path::new("/h"), false).unwrap(),
+            arguments(
+                &old,
+                Path::new("/p"),
+                Path::new("/h"),
+                false,
+                &StartOptions::default()
+            )
+            .unwrap(),
             ["--resources", "/p"]
         );
-        assert!(arguments(&old, Path::new("/p"), Path::new("/h"), true).is_err());
-        assert!(arguments(&[], Path::new("/p"), Path::new("/h"), false).is_err());
+        assert!(arguments(
+            &old,
+            Path::new("/p"),
+            Path::new("/h"),
+            true,
+            &StartOptions::default()
+        )
+        .is_err());
+        assert!(arguments(
+            &[],
+            Path::new("/p"),
+            Path::new("/h"),
+            false,
+            &StartOptions::default()
+        )
+        .is_err());
+
+        let join = StartOptions {
+            fullscreen: true,
+            server: Some("play.example.net".into()),
+        };
+        let mut all = options.clone();
+        all.extend([
+            "--fullscreen".to_string(),
+            "--quickPlayMultiplayer".to_string(),
+        ]);
+        let args = arguments(&all, Path::new("/p"), Path::new("/h"), false, &join).unwrap();
+        assert!(args.ends_with(&[
+            "--fullscreen".to_string(),
+            "--quickPlayMultiplayer".to_string(),
+            "play.example.net".to_string()
+        ]));
+        assert!(arguments(&options, Path::new("/p"), Path::new("/h"), false, &join).is_err());
     }
 
     #[test]

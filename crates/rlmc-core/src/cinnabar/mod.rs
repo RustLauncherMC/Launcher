@@ -142,8 +142,26 @@ pub fn build_info(install: &Install) -> Result<BuildInfo> {
 }
 
 /// Starts the game's home menu, where the player signs in and picks a world or server.
-pub fn launch(install: &Install) -> Result<Child> {
-    command(install)
+///
+/// `user_root` gives the game its own folder for settings, worlds and sign-in
+/// (`CINNABAR_USER_ROOT`); `server` (`host:port`) joins that server directly.
+pub fn launch(
+    install: &Install,
+    user_root: Option<&std::path::Path>,
+    server: Option<&str>,
+) -> Result<Child> {
+    let mut command = command(install);
+    if let Some(root) = user_root {
+        if !root.is_absolute() {
+            bail!("an installation's folder must be an absolute path");
+        }
+        std::fs::create_dir_all(root)?;
+        command.env("CINNABAR_USER_ROOT", root);
+    }
+    if let Some(server) = server {
+        command.arg("--address").arg(server);
+    }
+    command
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::null())

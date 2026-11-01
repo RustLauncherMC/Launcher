@@ -3,10 +3,11 @@
 use crate::launcher::{hero, Launcher, Tab};
 use crate::theme;
 use crate::widgets::{button, disabled, heading, label, progress_bar, release_notes, IntoDiv};
-use gpui::{div, prelude::*, px, ClickEvent, Context, Div, FontWeight, SharedString};
+use gpui::{div, prelude::*, px, ClickEvent, Context, Div, FontWeight, SharedString, Window};
 use rlmc_core::cinnabar::{self, BuildInfo, Channel, Install};
 use rlmc_core::download::Progress;
 use rlmc_core::github::Release;
+use rlmc_core::settings::Edition;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -148,13 +149,19 @@ impl Launcher {
     }
 
     fn play_bedrock(&mut self, cx: &mut Context<Self>) {
+        self.play_bedrock_with(None, cx)
+    }
+
+    /// Starts the selected installation, joining `server` (`host:port`) when given.
+    pub fn play_bedrock_with(&mut self, server: Option<String>, cx: &mut Context<Self>) {
         let Some(install) = self.bedrock.install.clone() else {
             return;
         };
         if self.bedrock.running || self.bedrock.job.is_some() {
             return;
         }
-        let mut child = match cinnabar::launch(&install) {
+        let root = self.selected_installation(Edition::Bedrock).folder();
+        let mut child = match cinnabar::launch(&install, root.as_deref(), server.as_deref()) {
             Ok(child) => child,
             Err(e) => {
                 self.bedrock.message = Some(Err(err(e)));
@@ -189,7 +196,7 @@ impl Launcher {
         .detach();
     }
 
-    pub fn bedrock_page(&mut self, cx: &mut Context<Self>) -> Div {
+    pub fn bedrock_page(&mut self, window: &Window, cx: &mut Context<Self>) -> Div {
         let tabs = [
             (Tab::Play, "Play"),
             (Tab::Installations, "Installations"),
@@ -200,9 +207,9 @@ impl Launcher {
                 .flex_1()
                 .flex()
                 .flex_col()
-                .child(self.bedrock_hero())
+                .child(self.bedrock_hero(window, cx))
                 .child(self.bedrock_bar(cx)),
-            Tab::Installations => self.bedrock_installations(cx),
+            Tab::Installations => self.bedrock_installations(window, cx),
             Tab::PatchNotes => self.bedrock_notes(cx),
         };
         div()
@@ -213,8 +220,13 @@ impl Launcher {
             .child(body)
     }
 
-    fn bedrock_hero(&self) -> Div {
+    fn bedrock_hero(&self, window: &Window, cx: &mut Context<Self>) -> Div {
+        let can_join =
+            self.bedrock.install.is_some() && !self.bedrock.running && self.bedrock.job.is_none();
         hero(theme::bedrock(), self.logo.clone())
+            .when(can_join, |hero| {
+                hero.child(self.join_server(Edition::Bedrock, window, cx))
+            })
             .child(heading("Cinnabar", 30.))
             .child(label(
                 "A Bedrock Edition client written from scratch in Rust",
@@ -276,8 +288,13 @@ impl Launcher {
             .flex()
             .flex_col()
             .gap(px(6.))
+            .child(
+                div()
+                    .flex()
+                    .child(self.installation_picker(Edition::Bedrock, cx)),
+            )
             .child(channels)
-            .child(label(installed, 13., theme::muted()));
+            .child(label(installed, 12., theme::muted()));
 
         let (text, action): (&str, Option<Action>) = if !supported {
             ("NOT AVAILABLE", None)
@@ -341,7 +358,7 @@ impl Launcher {
         };
 
         div()
-            .h(px(96.))
+            .h(px(112.))
             .px(px(32.))
             .flex()
             .items_center()
@@ -367,7 +384,7 @@ impl Launcher {
         label(text, 12., theme::muted()).text_right()
     }
 
-    fn bedrock_installations(&self, cx: &mut Context<Self>) -> Div {
+    fn bedrock_installations(&self, window: &Window, cx: &mut Context<Self>) -> Div {
         let b = &self.bedrock;
         let card = div()
             .p(px(16.))
@@ -437,6 +454,8 @@ impl Launcher {
             .flex()
             .flex_col()
             .gap(px(12.))
+            .child(self.installations_list(Edition::Bedrock, window, cx))
+            .child(heading("Cinnabar", 18.).mt(px(12.)))
             .child(card)
             .child(label(
                 "Cinnabar updates itself when it starts, on the channel it was installed from. \

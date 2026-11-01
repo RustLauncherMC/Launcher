@@ -2,6 +2,7 @@
 
 use crate::bedrock::Bedrock;
 use crate::horizon::Horizon;
+use crate::installations::InstallationsUi;
 use crate::java::Java;
 use crate::theme;
 use crate::updates::Updates;
@@ -39,6 +40,7 @@ pub struct Launcher {
     pub java: Java,
     pub horizon: Horizon,
     pub updates: Updates,
+    pub inst: InstallationsUi,
 }
 
 impl Launcher {
@@ -54,6 +56,7 @@ impl Launcher {
             java: Java::default(),
             horizon: Horizon::default(),
             updates: Updates::Checking,
+            inst: InstallationsUi::load(),
         };
         launcher.find_bedrock(cx);
         launcher.fetch_bedrock_release(cx);
@@ -389,10 +392,10 @@ pub fn hero(color: Rgba, logo: Arc<Image>) -> Div {
 }
 
 impl Render for Launcher {
-    fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let page = match self.page {
-            Page::Edition(Edition::Java) => self.java_page(cx),
-            Page::Edition(Edition::Bedrock) => self.bedrock_page(cx),
+            Page::Edition(Edition::Java) => self.java_page(window, cx),
+            Page::Edition(Edition::Bedrock) => self.bedrock_page(window, cx),
             Page::Settings => self.settings_page(cx),
         };
         div()
