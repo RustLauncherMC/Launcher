@@ -211,6 +211,13 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
 }
 .os-linux::before { border-radius: 50% 50% 40% 40%; }
 .meta .sep { opacity: 0.5; }
+.rust-icon { width: 15px; height: 15px; flex: none; color: var(--fg); }
+.written-in, .made-in { display: inline-flex; align-items: center; gap: 6px; }
+.written-in a, .made-in a { color: var(--fg); text-decoration: underline; text-decoration-color: rgba(240, 121, 90, 0.5); text-underline-offset: 3px; }
+.written-in a:hover, .made-in a:hover { text-decoration-color: var(--rust); }
+/* No gap here: the full stop after "Rust" must touch it. */
+.made-in { gap: 0; }
+.made-in .rust-icon { width: 14px; height: 14px; margin: 0 4px 0 5px; color: var(--muted); }
 
 /* Floating blocks, like the logo's. */
 .float {
@@ -501,6 +508,8 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
   .foot-bottom { flex-direction: column; gap: 8px; }
 }
 @media (max-width: 440px) {
+  /* "Written in Rust" wraps onto its own line here, so it needs no separator before it. */
+  .meta .sep-written { display: none; }
   .nav-end .btn-small { display: none; }
   .brand span { font-size: 16px; }
   .btn-big { width: 100%; }

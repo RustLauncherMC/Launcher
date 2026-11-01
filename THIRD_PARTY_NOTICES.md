@@ -8,6 +8,7 @@ RustLauncherMC is MIT-licensed (see [LICENSE](LICENSE)). It includes or builds o
 | [Noto Sans](https://github.com/notofonts/latin-greek-cyrillic) | Bundled font (`assets/fonts/`) | SIL Open Font License 1.1 ([`assets/fonts/OFL.txt`](assets/fonts/OFL.txt)) |
 | [Bricolage Grotesque](https://github.com/ateliertriay/bricolage) | Website font (`website/fonts/`, WOFF2, Latin subset) | SIL Open Font License 1.1 ([`OFL-BricolageGrotesque.txt`](website/fonts/OFL-BricolageGrotesque.txt)) |
 | [Geist](https://github.com/vercel/geist-font) | Website font (`website/fonts/`, WOFF2, Latin subset) | SIL Open Font License 1.1 ([`OFL-Geist.txt`](website/fonts/OFL-Geist.txt)) |
+| [Rust logo](https://simpleicons.org/?q=rust) from Simple Icons | Website icon ("Written in Rust", inlined in `website/index.html`) | CC0 1.0 for the drawing. The Rust logo is a trademark of the [Rust Foundation](https://rustfoundation.org/policy/rust-trademark-policy/), used unmodified to say the launcher is written in Rust |
 
 Other Rust dependencies are listed in `Cargo.lock`, each under its own license.
 
