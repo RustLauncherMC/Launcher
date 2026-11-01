@@ -37,9 +37,11 @@ way the official launcher puts Java and Bedrock side by side.
 
 - **Familiar layout:** an edition sidebar (Java: Horizon, Bedrock: Cinnabar), a large Play button
   with a version picker, and Play, Installations and Patch notes tabs for each edition.
-- **One sign-in:** a single Microsoft account (or several) shared by both games.
-- **Install and update:** downloads each game from its project's GitHub releases, with Stable and
-  Nightly channels, and updates the launcher itself.
+- **Sign-in:** Microsoft sign-in for Horizon, in the launcher. Cinnabar keeps its own sign-in and
+  account switcher inside the game.
+- **Install and update:** downloads each game from its project's GitHub releases and checks
+  them against the published checksums. Horizon ships Nightly builds, and Cinnabar ships Beta and
+  Nightly. Cinnabar keeps updating itself, and the launcher updates itself too.
 - **Installations:** several profiles per edition, each with its own version, game folder and
   launch options.
 - **Patch notes:** release notes from Horizon and Cinnabar, shown in the launcher.
@@ -50,10 +52,11 @@ way the official launcher puts Java and Bedrock side by side.
 | | Java: Horizon | Bedrock: Cinnabar |
 | --- | --- | --- |
 | **Account** | A Microsoft account that owns Minecraft: Java Edition | A Microsoft account |
-| **Game files** | Your own copy of Java Edition (Horizon prepares its files from it) | Vanilla resource pack, downloaded on first launch after you accept the Minecraft EULA |
+| **Game files** | Your own copy of Java Edition 26.3 (the launcher prepares Horizon's files from it, using Java 25) | Vanilla resource pack, downloaded on first launch after you accept the Minecraft EULA |
 | **GPU** | Vulkan or OpenGL 3.3 (Linux), Vulkan or DirectX 12 (Windows) | See the Cinnabar README |
 
-Each game's own README is the source of truth for its requirements.
+Each game's own README is the source of truth for its requirements. For how each game is
+installed, signed in and launched, see [docs/upstream-research.md](docs/upstream-research.md).
 
 ## Platforms
 
@@ -98,4 +101,6 @@ artwork.
 
 ## License
 
-[MIT](LICENSE). Horizon and Cinnabar are separate projects under their own licenses.
+[MIT](LICENSE). Horizon (MIT) and Cinnabar (PolyForm Noncommercial 1.0.0) are separate projects
+under their own licenses. The launcher downloads them from their official releases and does not
+bundle them. Because of Cinnabar's license, RustLauncherMC is and stays noncommercial.
