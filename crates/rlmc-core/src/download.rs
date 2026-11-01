@@ -22,6 +22,17 @@ impl Progress {
         self.total.store(0, Ordering::Relaxed);
     }
 
+    /// For work counted in files or steps rather than bytes.
+    pub fn set_counts(&self, done: u64, total: u64) {
+        self.total.store(total, Ordering::Relaxed);
+        self.done.store(done, Ordering::Relaxed);
+    }
+
+    /// For work that reports how far it is, from 0 to 1.
+    pub fn set_fraction(&self, fraction: f64) {
+        self.set_counts((fraction.clamp(0.0, 1.0) * 1000.0) as u64, 1000);
+    }
+
     pub fn step(&self) -> String {
         self.step.lock().unwrap().clone()
     }

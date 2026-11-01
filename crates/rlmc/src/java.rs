@@ -1,17 +1,21 @@
-//! The Java Edition page: Microsoft sign-in for Horizon. Installing and launching Horizon come
-//! next; until then Play stays disabled.
+//! The Java Edition page and Microsoft sign-in. Installing and starting Horizon is in
+//! `horizon.rs`.
 
 use crate::launcher::{hero, Launcher, Page, Tab};
 use crate::theme;
-use crate::widgets::{button, disabled, heading, label, primary_button};
+use crate::widgets::{button, disabled, heading, label, primary_button, progress_bar};
 use gpui::{
     div, prelude::*, px, ClickEvent, ClipboardItem, Context, Div, FontWeight, SharedString,
 };
 use rlmc_core::accounts::{self, Accounts, Keyring};
+use rlmc_core::horizon;
 use rlmc_core::microsoft::{self, DeviceCode};
 use rlmc_core::settings::Edition;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+
+/// What the Play button does when clicked.
+type Action = fn(&mut Launcher, &mut Context<Launcher>);
 
 const HORIZON_URL: &str = "https://github.com/horizon-rust/horizon";
 
@@ -45,8 +49,7 @@ impl Default for Java {
 }
 
 fn err(e: anyhow::Error) -> String {
-    eprintln!("RustLauncherMC: {e:#}");
-    e.to_string()
+    crate::widgets::friendly(e)
 }
 
 impl Launcher {
@@ -170,9 +173,17 @@ impl Launcher {
             .flex_1()
             .flex()
             .flex_col()
-            .child(self.header("JAVA EDITION", "Horizon", &[(Tab::Play, "Play")], cx))
-            .child(self.java_hero(cx))
-            .child(self.java_bar(cx))
+            .child(self.header("JAVA EDITION", "Horizon", &Self::java_tabs(), cx))
+            .child(match self.tab {
+                Tab::Play => div()
+                    .flex_1()
+                    .flex()
+                    .flex_col()
+                    .child(self.java_hero(cx))
+                    .child(self.java_bar(cx)),
+                Tab::Installations => self.horizon_installations(cx),
+                Tab::PatchNotes => self.horizon_notes(cx),
+            })
     }
 
     fn java_hero(&self, cx: &mut Context<Self>) -> Div {
@@ -230,13 +241,22 @@ impl Launcher {
             }
             None => match self.java.accounts.selected() {
                 Some(account) => hero
-                    .child(heading(format!("Signed in as {}", account.name), 24.))
+                    .child(heading("Horizon", 30.))
+                    .child(label(
+                        "Minecraft: Java Edition rewritten in Rust",
+                        15.,
+                        theme::muted(),
+                    ))
                     .child(
                         label(
-                            "Installing and launching Horizon, Minecraft: Java Edition \
-                             rewritten in Rust, is coming next.",
-                            15.,
-                            theme::muted(),
+                            format!(
+                                "Playing as {}. The first start downloads Horizon and prepares \
+                                 its game files from your copy of Minecraft, which takes a few \
+                                 minutes.",
+                                account.name
+                            ),
+                            13.,
+                            theme::faint(),
                         )
                         .max_w(px(560.))
                         .text_center(),
@@ -292,7 +312,30 @@ impl Launcher {
             ),
             None => left,
         };
+        let h = &self.horizon;
+        let installed = h.builds.first().map(|b| b.version.clone());
+        let left = left.child(label(
+            installed.unwrap_or_else(|| "Horizon not installed".into()),
+            12.,
+            theme::faint(),
+        ));
+        let (text, action): (&str, Option<Action>) = if horizon::asset_name().is_none() {
+            ("NOT AVAILABLE", None)
+        } else if h.job.is_some() {
+            ("STARTING", None)
+        } else if h.running {
+            ("PLAYING", None)
+        } else if self.java.sign_in.is_some() {
+            ("SIGNING IN", None)
+        } else if self.java.accounts.selected().is_none() {
+            ("SIGN IN", Some(Launcher::start_sign_in))
+        } else if h.builds.is_empty() {
+            ("INSTALL", Some(Launcher::play_java))
+        } else {
+            ("PLAY", Some(Launcher::play_java))
+        };
         let play = div()
+            .id("java-play")
             .w(px(260.))
             .h(px(58.))
             .rounded(px(4.))
@@ -301,14 +344,46 @@ impl Launcher {
             .justify_center()
             .text_size(px(20.))
             .font_weight(FontWeight::BOLD)
-            .bg(theme::play_disabled())
-            .text_color(theme::muted())
-            .child("COMING SOON");
-        let right = div().w(px(260.)).flex().flex_col().items_end();
-        let right = match &self.java.message {
-            Some(Ok(text)) => right.child(label(text.clone(), 12., theme::muted()).text_right()),
-            Some(Err(text)) => right.child(label(text.clone(), 12., theme::error()).text_right()),
-            None => right,
+            .child(text);
+        let play = match action {
+            Some(run) => play
+                .bg(theme::play())
+                .text_color(theme::text())
+                .cursor_pointer()
+                .hover(|s| s.bg(theme::play_hover()))
+                .on_click(cx.listener(move |this, _: &ClickEvent, _, cx| run(this, cx))),
+            None => play.bg(theme::play_disabled()).text_color(theme::muted()),
+        };
+        let right = div().w(px(260.)).flex().flex_col().items_end().gap(px(6.));
+        let message = h.message.as_ref().or(self.java.message.as_ref());
+        let right = if let Some(job) = &h.job {
+            let step = match job.fraction() {
+                Some(f) => format!("{} · {:.0}%", job.step(), f * 100.),
+                None => job.step(),
+            };
+            right
+                .child(label(step, 12., theme::muted()).text_right())
+                .child(progress_bar(job.fraction(), 220.))
+        } else if horizon::asset_name().is_none() {
+            right.child(
+                label(
+                    "Horizon has no build for this computer.",
+                    12.,
+                    theme::muted(),
+                )
+                .text_right(),
+            )
+        } else {
+            match message {
+                Some(Ok(text)) => {
+                    right.child(label(text.clone(), 12., theme::muted()).text_right())
+                }
+                Some(Err(text)) => {
+                    right.child(label(text.clone(), 12., theme::error()).text_right())
+                }
+                None => right
+                    .child(label(self.horizon_release_line(), 12., theme::muted()).text_right()),
+            }
         };
         div()
             .h(px(96.))

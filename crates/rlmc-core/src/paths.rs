@@ -3,9 +3,10 @@
 //! | | Windows | Linux |
 //! | --- | --- | --- |
 //! | config | `%APPDATA%\RustLauncherMC` | `$XDG_CONFIG_HOME/rustlaunchermc` |
+//! | data (games) | `%LOCALAPPDATA%\RustLauncherMC` | `$XDG_DATA_HOME/rustlaunchermc` |
 //! | cache (downloads) | `%LOCALAPPDATA%\RustLauncherMC\cache` | `$XDG_CACHE_HOME/rustlaunchermc` |
 //!
-//! `RUSTLAUNCHERMC_HOME` puts both under one folder instead, for testing and portable use.
+//! `RUSTLAUNCHERMC_HOME` puts all three under one folder instead, for testing and portable use.
 
 use std::path::PathBuf;
 
@@ -28,6 +29,16 @@ pub fn config_dir() -> PathBuf {
         return home.join("config");
     }
     dirs::config_dir()
+        .unwrap_or_else(std::env::temp_dir)
+        .join(APP_DIR)
+}
+
+/// The folder for games the launcher manages itself, such as Horizon builds and worlds.
+pub fn data_dir() -> PathBuf {
+    if let Some(home) = home_override() {
+        return home.join("data");
+    }
+    dirs::data_local_dir()
         .unwrap_or_else(std::env::temp_dir)
         .join(APP_DIR)
 }

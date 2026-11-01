@@ -8,6 +8,16 @@ repository.workspace = true
 
 [dependencies]
 anyhow = "1"
+# Horizon's signed releases: Ed25519 over SHA256SUMS (horizon/sign.rs). ring is already built
+# for HTTPS.
+base64 = "0.22"
+ring = "0.17"
+# Mojang's files are listed with SHA-1 (horizon/mojang.rs).
+sha1 = "0.10"
+# Unpacking Horizon builds: .tar.gz on Linux, .zip on Windows (horizon/extract.rs).
+flate2 = "1"
+tar = { version = "0.4", default-features = false }
+zip = { version = "2", default-features = false, features = ["deflate"] }
 dirs = "5"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

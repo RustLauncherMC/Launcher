@@ -2,6 +2,7 @@
 //! its own and reused by a command line later.
 //!
 //! - [`microsoft`] and [`accounts`]: Microsoft sign-in for Java Edition.
+//! - [`horizon`]: Minecraft: Java Edition through Horizon (install, prepare, launch).
 //! - [`cinnabar`]: Minecraft: Bedrock Edition through Cinnabar (find, install, launch).
 //! - [`github`]: reading a project's releases.
 //! - [`download`] and [`checksum`]: verified downloads.
@@ -14,6 +15,7 @@ pub mod checksum;
 pub mod cinnabar;
 pub mod download;
 pub mod github;
+pub mod horizon;
 pub mod microsoft;
 pub mod paths;
 pub mod settings;

@@ -1,7 +1,10 @@
 //! Small building blocks shared by the pages.
 
 use crate::theme;
-use gpui::{div, prelude::*, px, Div, ElementId, FontWeight, Hsla, SharedString, Stateful};
+use gpui::{
+    div, prelude::*, px, AnyElement, Div, ElementId, FontWeight, Hsla, SharedString, Stateful,
+};
+use rlmc_core::github::Release;
 
 /// A text block with the launcher's font size and colour.
 pub fn label(text: impl Into<SharedString>, size: f32, color: impl Into<Hsla>) -> Div {
@@ -77,6 +80,27 @@ pub fn progress_bar(fraction: Option<f32>, width: f32) -> Div {
                 .rounded(px(2.))
                 .bg(theme::play_hover()),
         )
+}
+
+/// An error's outermost message, for players, starting with a capital letter. The full chain
+/// goes to the log.
+pub fn friendly(e: anyhow::Error) -> String {
+    eprintln!("RustLauncherMC: {e:#}");
+    let text = e.to_string();
+    let mut chars = text.chars();
+    match chars.next() {
+        Some(first) => first.to_uppercase().chain(chars).collect(),
+        None => text,
+    }
+}
+
+/// A one-line label that ends in "…" when it doesn't fit, for paths.
+pub fn path_label(text: impl Into<SharedString>) -> Div {
+    label(text, 12., theme::faint())
+        .w_full()
+        .overflow_hidden()
+        .whitespace_nowrap()
+        .text_ellipsis()
 }
 
 /// A small isometric-looking edition icon: a square in the edition's colour with a grass top.
@@ -155,6 +179,84 @@ fn plain(text: &str) -> String {
     }
     out.push_str(rest);
     out.replace("**", "").replace("__", "").replace('`', "")
+}
+
+/// Scrolling containers need an id, which makes them `Stateful<Div>`; the pages are plain
+/// `Div`s, so wrap them.
+pub trait IntoDiv {
+    fn into_any_element_div(self) -> Div;
+}
+
+impl IntoDiv for Stateful<Div> {
+    fn into_any_element_div(self) -> Div {
+        div().flex_1().flex().flex_col().min_h(px(0.)).child(self)
+    }
+}
+
+/// A Patch notes tab: the release's title, channel and date, a link to GitHub, and its notes.
+pub fn release_notes(
+    release: Option<&Result<Release, String>>,
+    channel: &str,
+    releases_url: &str,
+    retry: AnyElement,
+) -> Div {
+    let content = match release {
+        None => label("Loading release notes…", 14., theme::muted()),
+        Some(Err(e)) => div()
+            .flex()
+            .flex_col()
+            .gap(px(8.))
+            .child(label("Could not load release notes.", 14., theme::text()))
+            .child(label(e.clone(), 12., theme::faint()))
+            .child(div().flex().child(retry)),
+        Some(Ok(release)) => {
+            let url = release
+                .html_url
+                .clone()
+                .unwrap_or_else(|| releases_url.to_string());
+            div()
+                .flex()
+                .flex_col()
+                .gap(px(10.))
+                .child(
+                    div()
+                        .flex()
+                        .items_center()
+                        .justify_between()
+                        .child(
+                            div()
+                                .flex()
+                                .flex_col()
+                                .child(heading(release.title().to_string(), 22.))
+                                .child(label(
+                                    format!("{channel} · {}", release.date().unwrap_or("")),
+                                    13.,
+                                    theme::muted(),
+                                )),
+                        )
+                        .child(
+                            button("notes-github", "View on GitHub")
+                                .on_click(move |_, _, cx| cx.open_url(&url)),
+                        ),
+                )
+                .child(div().h(px(1.)).bg(theme::border()))
+                .child(
+                    match release.body.as_deref().filter(|b| !b.trim().is_empty()) {
+                        Some(body) => notes(body),
+                        None => label("This release has no notes.", 14., theme::muted()),
+                    },
+                )
+        }
+    };
+    div()
+        .id("notes-scroll")
+        .flex_1()
+        .overflow_y_scroll()
+        .overflow_x_hidden()
+        .px(px(32.))
+        .py(px(24.))
+        .child(content)
+        .into_any_element_div()
 }
 
 #[cfg(test)]

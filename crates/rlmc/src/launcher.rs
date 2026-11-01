@@ -1,6 +1,7 @@
 //! The window: sidebar, edition header with tabs, and the selected page.
 
 use crate::bedrock::Bedrock;
+use crate::horizon::Horizon;
 use crate::java::Java;
 use crate::theme;
 use crate::widgets::{button, edition_icon, heading, label};
@@ -35,6 +36,7 @@ pub struct Launcher {
     pub logo: Arc<Image>,
     pub bedrock: Bedrock,
     pub java: Java,
+    pub horizon: Horizon,
 }
 
 impl Launcher {
@@ -48,9 +50,11 @@ impl Launcher {
             logo: Arc::new(Image::from_bytes(ImageFormat::Png, LOGO.to_vec())),
             bedrock: Bedrock::default(),
             java: Java::default(),
+            horizon: Horizon::default(),
         };
         launcher.find_bedrock(cx);
         launcher.fetch_bedrock_release(cx);
+        launcher.fetch_horizon_release(cx);
         launcher
     }
 
