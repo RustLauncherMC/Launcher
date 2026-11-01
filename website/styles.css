@@ -211,6 +211,13 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
 }
 .os-linux::before { border-radius: 50% 50% 40% 40%; }
 .meta .sep { opacity: 0.5; }
+.rust-icon { width: 15px; height: 15px; flex: none; color: var(--fg); }
+.written-in, .made-in { display: inline-flex; align-items: center; gap: 6px; }
+.written-in a, .made-in a { color: var(--fg); text-decoration: underline; text-decoration-color: rgba(240, 121, 90, 0.5); text-underline-offset: 3px; }
+.written-in a:hover, .made-in a:hover { text-decoration-color: var(--rust); }
+/* No gap here: the full stop after "Rust" must touch it. */
+.made-in { gap: 0; }
+.made-in .rust-icon { width: 14px; height: 14px; margin: 0 4px 0 5px; color: var(--muted); }
 
 /* Floating blocks, like the logo's. */
 .float {
@@ -429,10 +436,25 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
 /* ---------- Footer ---------- */
 .footer { border-top: 1px solid var(--line); padding: 48px 0 32px; font-size: 13.5px; background: #0f1012; }
 .foot-top { display: flex; justify-content: space-between; align-items: center; gap: 24px; }
-.foot-top p { margin: 0; max-width: 420px; text-align: right; }
+/* As on playhorizon.dev: the notice, with Mojang's and Microsoft's marks dimmed beside it. */
+.foot-notice { display: flex; flex-direction: row-reverse; align-items: center; gap: 16px; max-width: 560px; }
+.foot-notice p { margin: 0; text-align: right; font-size: 15px; font-weight: 500; line-height: 1.55; color: rgba(245, 242, 238, 0.82); }
+.foot-marks { display: flex; flex: none; align-items: center; gap: 12px; color: rgba(245, 242, 238, 0.45); }
+.mark-mojang { width: 24px; height: 24px; }
+.mark-microsoft { width: 20px; height: 20px; }
 .foot-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin: 40px 0; }
 .foot-cols h4 { margin: 0 0 12px; font-size: 13.5px; font-weight: 600; }
 .foot-cols p { margin: 0; color: var(--muted); }
+.foot-cols p + p { margin-top: 10px; }
+.claude-icon { width: 14px; height: 14px; flex: none; color: #d97757; }
+.claude-credit { white-space: nowrap; }
+.claude-credit .claude-icon { display: inline-block; margin-right: 4px; vertical-align: -2px; }
+.foot-cols .claude-note {
+  display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: 10px;
+  background: rgba(217, 119, 87, 0.08); border: 1px solid rgba(217, 119, 87, 0.22);
+  font-style: italic; color: #d8cfc7;
+}
+.claude-note .claude-icon { margin-top: 3px; }
 .foot-cols a { color: var(--fg); text-decoration-color: rgba(240, 121, 90, 0.5); text-underline-offset: 3px; }
 .foot-bottom { display: flex; justify-content: space-between; padding-top: 24px; border-top: 1px solid var(--line); color: var(--faint); }
 .foot-bottom a { color: var(--faint); text-decoration: none; }
@@ -497,10 +519,13 @@ h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
   .trust { gap: 8px 20px; font-size: 13px; }
   .final-box { flex-direction: column; text-align: center; padding: 30px 22px; }
   .foot-top { flex-direction: column; align-items: flex-start; }
-  .foot-top p { text-align: left; }
+  .foot-notice { flex-direction: column-reverse; align-items: flex-start; gap: 10px; }
+  .foot-notice p { text-align: left; }
   .foot-bottom { flex-direction: column; gap: 8px; }
 }
 @media (max-width: 440px) {
+  /* "Written in Rust" wraps onto its own line here, so it needs no separator before it. */
+  .meta .sep-written { display: none; }
   .nav-end .btn-small { display: none; }
   .brand span { font-size: 16px; }
   .btn-big { width: 100%; }

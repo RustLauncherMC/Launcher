@@ -298,6 +298,10 @@ async function showRelease() {
   }
 
   const version = release.tag_name;
+  const chip = document.querySelector("[data-chip-text]");
+  if (chip) chip.textContent = `${version} is out for Windows and Linux`;
+  const chipLink = document.querySelector("[data-chip]");
+  if (chipLink && release.html_url) chipLink.href = release.html_url;
   const pill = document.querySelector("[data-version-pill]");
   pill.textContent = version;
   pill.hidden = false;
