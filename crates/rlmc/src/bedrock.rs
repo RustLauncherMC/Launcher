@@ -171,6 +171,7 @@ impl Launcher {
         };
         self.bedrock.running = true;
         self.bedrock.message = None;
+        self.logs.crash = None;
         cx.notify();
         let task = cx.background_executor().spawn(async move { child.wait() });
         cx.spawn(async move |this, cx| {
@@ -179,13 +180,15 @@ impl Launcher {
                 this.bedrock.running = false;
                 this.bedrock.message = match status {
                     Ok(s) if s.success() => None,
-                    Ok(s) => Some(Err(match s.code() {
-                        Some(code) => format!(
-                            "Cinnabar closed with error code {code}. Its logs are in the game \
-                             data folder (Settings)."
-                        ),
-                        None => "Cinnabar was stopped.".to_string(),
-                    })),
+                    Ok(s) => {
+                        if s.code().is_some() {
+                            this.logs.crash = Some((Edition::Bedrock, None));
+                        }
+                        Some(Err(match s.code() {
+                            Some(code) => format!("Cinnabar closed with error code {code}."),
+                            None => "Cinnabar was stopped.".to_string(),
+                        }))
+                    }
                     Err(e) => Some(Err(e.to_string())),
                 };
                 // The game may have updated itself while it ran.
@@ -200,6 +203,7 @@ impl Launcher {
         let tabs = [
             (Tab::Play, "Play"),
             (Tab::Installations, "Installations"),
+            (Tab::Logs, "Logs"),
             (Tab::PatchNotes, "Patch notes"),
         ];
         let body = match self.tab {
@@ -210,6 +214,7 @@ impl Launcher {
                 .child(self.bedrock_hero(window, cx))
                 .child(self.bedrock_bar(cx)),
             Tab::Installations => self.bedrock_installations(window, cx),
+            Tab::Logs => self.logs_tab(Edition::Bedrock, cx),
             Tab::PatchNotes => self.bedrock_notes(cx),
         };
         div()
@@ -351,7 +356,9 @@ impl Launcher {
         } else if let Some(message) = &b.message {
             match message {
                 Ok(text) => right.child(label(text.clone(), 12., theme::muted()).text_right()),
-                Err(text) => right.child(label(text.clone(), 12., theme::error()).text_right()),
+                Err(text) => right
+                    .child(label(text.clone(), 12., theme::error()).text_right())
+                    .children(self.crash_link(Edition::Bedrock, cx)),
             }
         } else {
             right.child(self.release_line())

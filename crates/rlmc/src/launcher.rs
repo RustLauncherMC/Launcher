@@ -4,6 +4,7 @@ use crate::bedrock::Bedrock;
 use crate::horizon::Horizon;
 use crate::installations::InstallationsUi;
 use crate::java::Java;
+use crate::logs::LogsUi;
 use crate::theme;
 use crate::updates::Updates;
 use crate::widgets::{button, edition_icon, heading, label};
@@ -27,6 +28,7 @@ pub enum Page {
 pub enum Tab {
     Play,
     Installations,
+    Logs,
     PatchNotes,
 }
 
@@ -41,6 +43,7 @@ pub struct Launcher {
     pub horizon: Horizon,
     pub updates: Updates,
     pub inst: InstallationsUi,
+    pub logs: LogsUi,
 }
 
 impl Launcher {
@@ -57,6 +60,7 @@ impl Launcher {
             horizon: Horizon::default(),
             updates: Updates::Checking,
             inst: InstallationsUi::load(),
+            logs: LogsUi::default(),
         };
         launcher.find_bedrock(cx);
         launcher.fetch_bedrock_release(cx);
