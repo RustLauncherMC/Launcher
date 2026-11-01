@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="400" viewBox="0 0 1280 400" role="img" aria-labelledby="t">
+  <title id="t">RustLauncherMC: one launcher for Horizon and Cinnabar</title>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1B1C20"/>
+      <stop offset="0.55" stop-color="#24213F"/>
+      <stop offset="1" stop-color="#3A1518"/>
+    </linearGradient>
+    <pattern id="px" width="32" height="32" patternUnits="userSpaceOnUse">
+      <rect width="32" height="32" fill="none"/>
+      <rect width="16" height="16" fill="#FFFFFF" fill-opacity="0.025"/>
+      <rect x="16" y="16" width="16" height="16" fill="#FFFFFF" fill-opacity="0.025"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="400" rx="24" fill="url(#sky)"/>
+  <rect width="1280" height="400" rx="24" fill="url(#px)"/>
+  <image href="logo.svg" x="96" y="72" width="256" height="256"/>
+  <g font-family="'Segoe UI', 'Noto Sans', 'DejaVu Sans', Arial, sans-serif">
+    <text x="400" y="182" font-size="84" font-weight="800" fill="#FFFFFF">RustLauncher<tspan fill="#F0795A">MC</tspan></text>
+    <text x="404" y="238" font-size="30" fill="#D7D9DE">One launcher for Minecraft rewritten in Rust</text>
+    <g font-size="22" font-weight="700">
+      <rect x="404" y="270" width="236" height="44" rx="10" fill="#3B2F7E"/>
+      <text x="522" y="299" text-anchor="middle" fill="#FFFFFF">Java · Horizon</text>
+      <rect x="656" y="270" width="270" height="44" rx="10" fill="#B22222"/>
+      <text x="791" y="299" text-anchor="middle" fill="#FFFFFF">Bedrock · Cinnabar</text>
+      <rect x="942" y="270" width="218" height="44" rx="10" fill="none" stroke="#6DB33F" stroke-width="2"/>
+      <text x="1051" y="299" text-anchor="middle" fill="#9BD66F">Windows · Linux</text>
+    </g>
+  </g>
+</svg>
