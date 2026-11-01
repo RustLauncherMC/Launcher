@@ -97,7 +97,9 @@ fn exe_from_desktop_entry(text: &str) -> Option<PathBuf> {
             exec = first_word(value);
         }
     }
-    exec.map(PathBuf::from).filter(|p| p.is_absolute())
+    // Desktop entries are a Linux format, so their paths are Unix paths: checked as text, so
+    // the check means the same when the tests run on Windows.
+    exec.filter(|p| p.starts_with('/')).map(PathBuf::from)
 }
 
 /// The first word of an `Exec` value, with desktop-entry quoting undone.
