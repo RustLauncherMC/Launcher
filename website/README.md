@@ -6,12 +6,24 @@ A static site in plain HTML, CSS and JavaScript, with no build step.
 | --- | --- |
 | `index.html` | The page |
 | `styles.css` | Styles: colours and fonts at the top, small screens at the bottom |
-| `main.js` | The pixel-art sky and aurora (canvas), the launcher preview, scroll reveals, the mobile menu, and the latest release from GitHub's API |
+| `main.js` | The pixel cog and embers (canvas), the launcher preview, the navbar (shrinks on scroll, highlights the section in view, mobile menu), scroll reveals, and the latest release from GitHub's API |
 | `fonts/` | Bricolage Grotesque and Geist, hosted here (SIL Open Font License, see the `OFL-*.txt` files) |
-| `img/` | The logo |
+| `img/` | The logo. The isometric block is also inlined in `index.html` as an SVG symbol |
 
-The design follows [playhorizon.dev](https://playhorizon.dev): the same dark night palette,
-fonts, pixel-art horizon and section layout, with RustLauncherMC's own content, colours and art.
+## Brand
+
+The colours come from the logo and the launcher itself:
+
+| Colour | Where it comes from | Used for |
+| --- | --- | --- |
+| Charcoal `#131416` to `#2a2c31` | The logo's tile, the launcher's window | Background and surfaces |
+| Rust orange `#f0795a` to `#b7410e` | The logo's cog | Main buttons, highlights, the cog behind the hero |
+| Grass green `#6db33f` | The block's top | "New" tag, list markers |
+| Java purple `#3b2f7e`, Bedrock red `#b22222` | The block's sides | Each edition's colour |
+| Play green `#3c8527` | The launcher's Play button | Only in the launcher preview |
+
+The headings use Bricolage Grotesque and the text uses Geist. The section layout started from
+[playhorizon.dev](https://playhorizon.dev)'s.
 
 ## Try it locally
 

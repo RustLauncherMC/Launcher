@@ -1,5 +1,5 @@
-// RustLauncherMC's website: the pixel sky, the launcher preview, the latest release, and small
-// page behaviour. Plain JavaScript, no dependencies.
+// RustLauncherMC's website: the pixel cog and embers, the launcher preview, the latest release,
+// and small page behaviour. Plain JavaScript, no dependencies.
 "use strict";
 
 const REPO = "RustLauncherMC/Launcher";
@@ -10,7 +10,7 @@ document.documentElement.classList.add("js");
 
 /* ---------- Navigation ---------- */
 const nav = document.querySelector(".nav");
-const onScroll = () => nav.classList.toggle("scrolled", window.scrollY > 8);
+const onScroll = () => nav.classList.toggle("scrolled", window.scrollY > 40);
 window.addEventListener("scroll", onScroll, { passive: true });
 onScroll();
 
@@ -47,189 +47,12 @@ if ("IntersectionObserver" in window && !reducedMotion) {
 }
 
 /* ---------- Pixel art ---------- */
-// A small deterministic random number generator, so the scene is the same on every load.
+// A small deterministic random number generator, so the art is the same on every load.
 function rng(seed) {
   return () => {
     seed = (seed * 1664525 + 1013904223) >>> 0;
     return seed / 4294967296;
   };
-}
-
-// Smooth 1D noise from a seeded table, for hills.
-function noise1d(seed) {
-  const r = rng(seed);
-  const table = Array.from({ length: 64 }, r);
-  return (x) => {
-    const i = Math.floor(x);
-    const f = x - i;
-    const a = table[((i % 64) + 64) % 64];
-    const b = table[(((i + 1) % 64) + 64) % 64];
-    const t = f * f * (3 - 2 * f);
-    return a + (b - a) * t;
-  };
-}
-
-// Draws at a quarter of the screen's resolution; CSS scales it up without smoothing.
-const PIXEL = 4;
-
-function setupCanvas(canvas) {
-  const ctx = canvas.getContext("2d");
-  const size = () => {
-    const w = Math.ceil(canvas.clientWidth / PIXEL);
-    const h = Math.ceil(canvas.clientHeight / PIXEL);
-    if (canvas.width !== w || canvas.height !== h) {
-      canvas.width = w;
-      canvas.height = h;
-      return true;
-    }
-    return false;
-  };
-  return { ctx, size };
-}
-
-/* The hero: a night sky going into a sunset, a blocky sun, clouds, two ranges of blocky hills
-   with trees, and twinkling stars. */
-function hero(canvas) {
-  const { ctx, size } = setupCanvas(canvas);
-  const hillsFar = noise1d(7);
-  const hillsNear = noise1d(23);
-  let stars = [];
-  let clouds = [];
-
-  const build = () => {
-    const r = rng(42);
-    const { width: w, height: h } = canvas;
-    stars = Array.from({ length: Math.round((w * h) / 260) }, () => ({
-      x: Math.floor(r() * w),
-      y: Math.floor(r() * (h - 260 / PIXEL)),
-      p: r() * Math.PI * 2,
-      s: 0.5 + r() * 1.5,
-      big: r() < 0.06,
-    }));
-    clouds = Array.from({ length: 6 }, (_, i) => ({
-      x: r() * w,
-      y: h - (150 + r() * 90) / PIXEL,
-      w: 18 + Math.floor(r() * 28),
-      speed: 0.02 + r() * 0.03,
-      layer: i % 2,
-    }));
-  };
-
-  const draw = (time) => {
-    if (size()) build();
-    const { width: w, height: h } = canvas;
-    // The scene sits at the bottom of the hero whatever its height, under the text.
-    const horizon = h - Math.round(110 / PIXEL);
-
-    // Sky.
-    const sky = ctx.createLinearGradient(0, 0, 0, horizon);
-    sky.addColorStop(0, "#100a1f");
-    const at = (px) => Math.min(0.99, Math.max(0.01, 1 - px / PIXEL / horizon));
-    sky.addColorStop(at(520), "#1d1340");
-    sky.addColorStop(at(260), "#4a1f5c");
-    sky.addColorStop(at(110), "#a63a5a");
-    sky.addColorStop(1, "#f0795a");
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, w, h);
-
-    // Stars.
-    for (const s of stars) {
-      const a = reducedMotion ? 0.7 : 0.35 + 0.65 * Math.abs(Math.sin(time / 1000 * s.s + s.p));
-      const fade = Math.max(0, 1 - s.y / (h - 200 / PIXEL));
-      ctx.fillStyle = `rgba(244, 241, 255, ${(a * fade).toFixed(3)})`;
-      ctx.fillRect(s.x, s.y, 1, 1);
-      if (s.big && a > 0.8) {
-        ctx.fillStyle = `rgba(244, 241, 255, ${(0.35 * fade).toFixed(3)})`;
-        ctx.fillRect(s.x - 1, s.y, 3, 1);
-        ctx.fillRect(s.x, s.y - 1, 1, 3);
-      }
-    }
-
-    // The sun: a pixel disc with gaps near the bottom, half below the horizon.
-    const sunR = Math.round(Math.min(110, w * PIXEL * 0.12) / PIXEL);
-    const sunX = Math.floor(w * (w * PIXEL > 960 ? 0.7 : 0.62));
-    const sunY = horizon - Math.floor(sunR * 0.35);
-    for (let y = -sunR; y <= sunR; y++) {
-      const half = Math.floor(Math.sqrt(sunR * sunR - y * y));
-      const t = (y + sunR) / (2 * sunR);
-      if (t > 0.55 && Math.floor(y) % 4 === 0) continue; // the stripes
-      const g = Math.round(230 - t * 110);
-      ctx.fillStyle = `rgb(255, ${g}, ${Math.round(140 - t * 80)})`;
-      ctx.fillRect(sunX - half, sunY + y, half * 2, 1);
-    }
-
-    // Clouds, drifting.
-    for (const c of clouds) {
-      const x = ((c.x + (reducedMotion ? 0 : time * c.speed * 0.06)) % (w + c.w * 2)) - c.w;
-      const y = Math.floor(c.y);
-      ctx.fillStyle = c.layer ? "rgba(255, 170, 150, 0.55)" : "rgba(214, 120, 160, 0.5)";
-      ctx.fillRect(Math.floor(x), y, c.w, 2);
-      ctx.fillRect(Math.floor(x + c.w * 0.2), y - 2, Math.floor(c.w * 0.5), 2);
-      ctx.fillRect(Math.floor(x + c.w * 0.35), y - 4, Math.floor(c.w * 0.22), 2);
-    }
-
-    // Far hills: blocks of 3 pixels, in dusky purple.
-    const block = 3;
-    ctx.fillStyle = "#2a1a4a";
-    for (let x = 0; x < w; x += block) {
-      const n = hillsFar(x / 40);
-      const top = horizon - 6 - Math.floor((n * 20) / block) * block;
-      ctx.fillRect(x, top, block, h - top);
-    }
-    // Near hills with trees, darker.
-    ctx.fillStyle = "#170e2e";
-    const r = rng(99);
-    for (let x = 0; x < w; x += block) {
-      const n = hillsNear(x / 28 + 3);
-      const top = horizon + 4 - Math.floor((n * 18) / block) * block;
-      ctx.fillRect(x, top, block, h - top);
-      if (r() < 0.07) {
-        // A tree: a trunk and a blocky crown.
-        ctx.fillRect(x + 1, top - 5, 1, 5);
-        ctx.fillRect(x - 1, top - 9, 5, 4);
-        ctx.fillRect(x, top - 11, 3, 2);
-      }
-    }
-
-    // Fade into the page.
-    const from = h - 60 / PIXEL;
-    const fade = ctx.createLinearGradient(0, from, 0, h);
-    fade.addColorStop(0, "rgba(16, 10, 31, 0)");
-    fade.addColorStop(1, "#100a1f");
-    ctx.fillStyle = fade;
-    ctx.fillRect(0, from, w, h - from);
-  };
-
-  animate(canvas, draw);
-}
-
-/* The community section: pixelated aurora bands and a few stars. */
-function aurora(canvas) {
-  const { ctx, size } = setupCanvas(canvas);
-  const draw = (time) => {
-    size();
-    const { width: w, height: h } = canvas;
-    ctx.clearRect(0, 0, w, h);
-    const t = reducedMotion ? 0 : time / 4000;
-    const bands = [
-      { c: "139, 108, 255", y: 0.5, a: 0.22, f: 0.035 },
-      { c: "211, 58, 63", y: 0.62, a: 0.16, f: 0.05 },
-      { c: "240, 121, 90", y: 0.72, a: 0.1, f: 0.07 },
-    ];
-    for (const b of bands) {
-      for (let x = 0; x < w; x += 2) {
-        const wave = Math.sin(x * b.f + t * (1 + b.f * 10)) * h * 0.06 + Math.sin(x * b.f * 0.37 - t) * h * 0.04;
-        const top = Math.floor(h * b.y + wave);
-        const height = Math.floor(h * 0.18);
-        for (let y = 0; y < height; y += 2) {
-          const alpha = b.a * Math.sin((y / height) * Math.PI);
-          ctx.fillStyle = `rgba(${b.c}, ${alpha.toFixed(3)})`;
-          ctx.fillRect(x, top - height / 2 + y, 2, 2);
-        }
-      }
-    }
-  };
-  animate(canvas, draw);
 }
 
 // Runs `draw` every frame while the canvas is on screen (once with reduced motion).
@@ -251,13 +74,151 @@ function animate(canvas, draw) {
   frame = requestAnimationFrame(loop);
 }
 
-hero(document.getElementById("sky"));
-aurora(document.getElementById("aurora"));
+const hex = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+
+/* The logo's cog in pixel art: 24 teeth around a band and an inner ring, lit from the top
+   left, turning slowly behind the launcher window. Drawn pixel by pixel at a fifth of the
+   canvas's size; CSS scales it up without smoothing. */
+function cog(canvas) {
+  const N = 152;
+  canvas.width = N;
+  canvas.height = N;
+  const ctx = canvas.getContext("2d");
+  const image = ctx.createImageData(N, N);
+  const c = N / 2;
+  const shades = ["#ffb39f", "#f0795a", "#d65f3a", "#b7410e", "#7c2c0c"].map(hex);
+  const TEETH = 24;
+  const light = (-3 * Math.PI) / 4; // from the top left
+
+  const draw = (time) => {
+    const turn = reducedMotion ? 0 : (time / 90000) * Math.PI * 2;
+    const data = image.data;
+    data.fill(0);
+    for (let y = 0; y < N; y++) {
+      for (let x = 0; x < N; x++) {
+        const dx = x + 0.5 - c;
+        const dy = y + 0.5 - c;
+        const r = Math.hypot(dx, dy);
+        const a = Math.atan2(dy, dx);
+        // Which part of the cog this pixel is, and how close to its edge.
+        let edge = -1;
+        if (r >= 46 && r < 51) edge = Math.min(r - 46, 51 - r); // inner ring
+        else if (r >= 55 && r < 63) edge = Math.min(r - 55, 63 - r); // band
+        else if (r >= 63 && r < 73) {
+          const t = (((a - turn) / (Math.PI * 2)) * TEETH) % 1;
+          const tooth = (t + 1) % 1;
+          if (tooth < 0.5) edge = Math.min(73 - r, tooth * 9, (0.5 - tooth) * 9);
+        }
+        if (edge < 0) continue;
+        // Light: brighter facing the top left, a dark rim on every edge.
+        const facing = Math.cos(a - light);
+        let shade = facing > 0.55 ? 0 : facing > 0 ? 1 : facing > -0.55 ? 2 : 3;
+        if (edge < 1) shade = Math.min(4, shade + 2);
+        const [R, G, B] = shades[shade];
+        const i = (y * N + x) * 4;
+        data[i] = R;
+        data[i + 1] = G;
+        data[i + 2] = B;
+        data[i + 3] = 255;
+      }
+    }
+    ctx.putImageData(image, 0, 0);
+  };
+  animate(canvas, draw);
+}
+
+/* The community section: pixel embers rising from the bottom, like sparks off the cog. */
+function embers(canvas) {
+  const PIXEL = 4;
+  const ctx = canvas.getContext("2d");
+  const r = rng(11);
+  let sparks = [];
+  const colors = ["#ffb39f", "#f0795a", "#e2603c", "#b7410e", "#6db33f"];
+  const draw = (time) => {
+    const w = Math.ceil(canvas.clientWidth / PIXEL);
+    const h = Math.ceil(canvas.clientHeight / PIXEL);
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+      sparks = Array.from({ length: Math.round(w / 3) }, () => ({
+        x: r() * w,
+        y: r() * h,
+        speed: 0.006 + r() * 0.02,
+        sway: r() * Math.PI * 2,
+        color: colors[Math.floor(r() * (r() < 0.12 ? 5 : 4))],
+        size: r() < 0.2 ? 2 : 1,
+      }));
+    }
+    ctx.clearRect(0, 0, w, h);
+    // A warm glow low in the section, fading out before its edges.
+    const glow = ctx.createLinearGradient(0, 0, 0, h);
+    glow.addColorStop(0.35, "rgba(240, 121, 90, 0)");
+    glow.addColorStop(0.75, "rgba(240, 121, 90, 0.1)");
+    glow.addColorStop(1, "rgba(240, 121, 90, 0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, w, h);
+    const t = reducedMotion ? 0 : time;
+    for (const s of sparks) {
+      const y = (((s.y - t * s.speed) % h) + h) % h;
+      const x = s.x + Math.sin(t / 900 + s.sway) * 3;
+      const life = y / h; // fades as it rises
+      ctx.globalAlpha = Math.max(0, Math.min(1, life * 1.4)) * 0.8;
+      ctx.fillStyle = s.color;
+      ctx.fillRect(Math.round(x), Math.round(y), s.size, s.size);
+    }
+    ctx.globalAlpha = 1;
+  };
+  animate(canvas, draw);
+}
+
+cog(document.getElementById("cog"));
+embers(document.getElementById("embers"));
+
+/* ---------- Floating blocks follow the pointer a little ---------- */
+const floats = document.querySelectorAll(".float");
+if (!reducedMotion && floats.length && window.matchMedia("(pointer: fine)").matches) {
+  window.addEventListener("pointermove", (e) => {
+    const dx = e.clientX / window.innerWidth - 0.5;
+    const dy = e.clientY / window.innerHeight - 0.5;
+    floats.forEach((el, i) => {
+      const depth = 6 + i * 4;
+      el.style.transform = `translate(${(-dx * depth).toFixed(1)}px, ${(-dy * depth).toFixed(1)}px)`;
+    });
+  }, { passive: true });
+}
+
+/* ---------- The section in view, highlighted in the navbar ---------- */
+const spyLinks = [...document.querySelectorAll("[data-spy]")];
+if ("IntersectionObserver" in window && spyLinks.length) {
+  const byId = new Map(spyLinks.map((a) => [a.getAttribute("href").slice(1), a]));
+  const spy = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        spyLinks.forEach((a) => a.classList.remove("active"));
+        const link = byId.get(entry.target.id);
+        if (link) link.classList.add("active");
+      }
+    },
+    { rootMargin: "-45% 0px -50% 0px" }
+  );
+  byId.forEach((_, id) => {
+    const section = document.getElementById(id);
+    if (section) spy.observe(section);
+  });
+  // Above the first section, nothing is highlighted.
+  window.addEventListener("scroll", () => {
+    const first = document.getElementById(spyLinks[0].getAttribute("href").slice(1));
+    if (first && window.scrollY + window.innerHeight * 0.5 < first.offsetTop) {
+      spyLinks.forEach((a) => a.classList.remove("active"));
+    }
+  }, { passive: true });
+}
 
 /* ---------- The launcher preview ---------- */
 const editions = {
-  java: { title: "JAVA EDITION", sub: "Horizon", name: "Horizon", tag: "Minecraft: Java Edition rewritten in Rust", status: "Latest nightly" },
-  bedrock: { title: "BEDROCK EDITION", sub: "Cinnabar", name: "Cinnabar", tag: "A Bedrock Edition client written in Rust", status: "Latest Beta" },
+  java: { title: "JAVA EDITION", sub: "Horizon", name: "Horizon", tag: "Minecraft: Java Edition rewritten in Rust", status: "Latest nightly", version: "Horizon nightly" },
+  bedrock: { title: "BEDROCK EDITION", sub: "Cinnabar", name: "Cinnabar", tag: "A Bedrock Edition client written in Rust", status: "Latest Beta", version: "Cinnabar Beta" },
 };
 const win = (name) => document.querySelector(`[data-win-${name}]`);
 let playing = null;
@@ -271,6 +232,7 @@ document.querySelectorAll(".win-ed").forEach((button) => {
     win("name").textContent = edition.name;
     win("tag").textContent = edition.tag;
     win("status").textContent = edition.status;
+    win("version").textContent = edition.version;
     win("art").classList.toggle("java", button.dataset.edition === "java");
   });
 });
