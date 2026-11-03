@@ -4517,7 +4517,7 @@ dependencies = [
 
 [[package]]
 name = "rlmc"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "gpui-fast",
@@ -4528,7 +4528,7 @@ dependencies = [
 
 [[package]]
 name = "rlmc-core"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "base64",
@@ -4549,7 +4549,7 @@ dependencies = [
 
 [[package]]
 name = "rlmc-release"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "rlmc-core",

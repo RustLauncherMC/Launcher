@@ -337,8 +337,8 @@ pub fn minecraft(agent: &ureq::Agent, ms_access_token: &str) -> Result<Minecraft
     )?;
     if status == 403 && text.contains("Invalid app registration") {
         bail!(
-            "Mojang has not approved this launcher's sign-in app yet, so Minecraft refused the \
-             sign-in. Please try again once it is approved"
+            "Minecraft refused this launcher's sign-in app. Update RustLauncherMC, or report \
+             this at github.com/RustLauncherMC/Launcher/issues"
         );
     }
     if status != 200 {
