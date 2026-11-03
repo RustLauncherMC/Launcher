@@ -33,12 +33,12 @@ Rust) from one window, laid out like the official Minecraft Launcher.
 
 ## Status
 
-**v0.1.0 is out** for Windows and Linux.
+**v0.2.0 is out** for Windows and Linux, with Java sign-in.
 
 | | Status |
 | --- | --- |
 | **Bedrock Edition** (Cinnabar) | Works: install, update, launch, installations, Join a server. Cinnabar signs you in inside the game. |
-| **Java Edition** (Horizon) | Install, prepare and launch work. **Microsoft sign-in is waiting for Mojang** to approve the launcher's sign-in app; until then, Minecraft refuses the last sign-in step. |
+| **Java Edition** (Horizon) | Works: Microsoft sign-in, install, prepare, launch, installations, Join a server. Mojang has approved the launcher's sign-in app. |
 | **The launcher** | Signed releases, installers and self-update are in place. |
 
 ## Download
@@ -119,8 +119,9 @@ Each game's own README is the source of truth for its requirements.
 **Is this official?** No. It's a fan project, not affiliated with Mojang, Microsoft, Horizon or
 Cinnabar.
 
-**Why does Java sign-in say the app isn't approved?** Minecraft only lets apps that Mojang has
-approved sign players in, and RustLauncherMC's app is still in review. Bedrock isn't affected.
+**Can I sign in to Java Edition?** Yes. Mojang has approved RustLauncherMC's sign-in app, so you
+can sign in with a Microsoft account that owns Java Edition. You enter a short code at
+microsoft.com/link, and the launcher never sees your password.
 
 **Can servers ban me?** Cinnabar's README warns that its movement and combat may not match the
 official client yet, so some anticheats may flag it. Play on servers at your own risk.
@@ -191,7 +192,7 @@ Settings for development:
 - [x] Installations, Join a server, player heads
 - [x] Signed releases, installers, self-update
 - [x] First release (v0.1.0) and the website
-- [ ] Mojang's approval of the sign-in app
+- [x] Mojang's approval of the sign-in app (v0.2.0)
 - [x] Log and crash viewer in the launcher
 - [ ] More options per installation (window size, game arguments)
 - [ ] Translations

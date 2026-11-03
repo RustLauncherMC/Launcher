@@ -234,7 +234,7 @@ PolyForm Noncommercial 1.0.0:
 
 - **Microsoft sign-in:** our own Azure app, client ID `01fcbd6d-d954-499a-8c3a-0c837eef86ac`.
   It must be set to personal Microsoft accounts with public client flows on. Mojang's approval was
-  requested on 2026-11-01.
+  requested on 2026-11-01 and granted in November 2026.
 
 - **Horizon's files:** builds in `<data>/horizon/versions/` (newest two kept), Minecraft
   downloaded from Mojang in `<data>/horizon/minecraft/` when the official launcher's folder has no
